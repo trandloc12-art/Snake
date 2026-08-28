@@ -1,0 +1,54 @@
+# ===== Thư mục build của CMake =====
+# CMake sinh ra rất nhiều file trung gian (Makefile, cache, object files...)
+# Không bao giờ commit thư mục này lên Git — mỗi máy build lại từ đầu là đủ.
+build/
+build*/
+out/
+cmake-build-*/          # thư mục build mặc định của CLion
+
+# ===== File cấu hình/cache riêng của CMake =====
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
+_deps/                  # thư mục CMake FetchContent tải thư viện về (ví dụ raylib qua FetchContent)
+Testing/
+
+# ===== File biên dịch / object / thư viện trung gian =====
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.so.*
+*.dylib
+*.dll
+*.pdb
+*.ilk
+*.exp
+
+# ===== File thực thi (executable) =====
+# Đổi "MyGame" thành tên thật của bạn trong add_executable(), hoặc dùng
+# mẫu chung bên dưới nếu build ra nhiều file .exe khác nhau.
+*.exe
+*.out
+*.app
+
+# ===== IDE / Editor =====
+.vscode/                # VS Code (giữ lại nếu bạn muốn chia sẻ settings.json chung cho team)
+.idea/                  # CLion / JetBrains
+*.swp                   # Vim swap file
+*.swo
+.DS_Store               # macOS
+Thumbs.db               # Windows
+
+# ===== File do compiler/linker sinh thêm =====
+*.log
+*.tlog
+*.suo
+*.user
+
+# ===== Ngoại lệ: KHÔNG bỏ qua assets, dù nằm gần thư mục build =====
+# (Mặc định các rule ở trên không đụng tới assets/, nhưng nếu bạn từng
+#  lỡ đặt tên thư mục trùng, dòng dưới đảm bảo assets luôn được giữ lại)
+!assets/
