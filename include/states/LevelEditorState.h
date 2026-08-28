@@ -4,26 +4,28 @@
 #include "Snake/Level.h"
 #include "Snake/CellType.h"
 
+/// Các bước con trong quy trình tạo màn chơi.
 enum class EditorPhase {
-    ASK_WIDTH,    // đang hỏi chiều rộng
-    ASK_HEIGHT,   // đang hỏi chiều cao
-    DRAWING       // đang vẽ màn
+    ASK_WIDTH,   ///< Đang chờ nhập chiều rộng
+    ASK_HEIGHT,  ///< Đang chờ nhập chiều cao
+    DRAWING      ///< Đang vẽ màn chơi
 };
 
+/// State cho phép tạo/chỉnh sửa màn chơi bằng chuột + phím tắt, lưu ra file text.
 class LevelEditorState {
 public:
-    void Init();                 // gọi khi vào state này
-    void Update();
-    void Draw();
+    void Init();    ///< Reset state về trạng thái ban đầu, gọi 1 lần khi vào state
+    void Update();  ///< Xử lý input mỗi frame (nhập số, vẽ ô, lưu file)
+    void Draw();    ///< Vẽ giao diện mỗi frame (lưới, brush hiện tại, hướng dẫn)
 
 private:
-    EditorPhase phase = EditorPhase::ASK_WIDTH;
-    std::string inputBuffer;     // chuỗi số đang gõ dở
-    int pendingWidth = 0;
+    EditorPhase phase = EditorPhase::ASK_WIDTH; ///< Bước hiện tại trong quy trình
+    std::string inputBuffer;                    ///< Chuỗi số đang gõ dở (width/height)
+    int pendingWidth = 0;                       ///< Width đã nhập, giữ tạm chờ nhập height
 
-    Level level;
-    CellType currentBrush = CellType::WALL;
-    int cellSize = 32;
+    Level level;                                ///< Dữ liệu màn chơi đang chỉnh sửa
+    CellType currentBrush = CellType::WALL;      ///< Loại ô đang chọn để vẽ
+    int cellSize = 32;                          ///< Kích thước 1 ô (pixel) khi vẽ lên màn hình
 
-    bool hasHead = false;        // đảm bảo chỉ có 1 HEAD trong màn
+    bool hasHead = false;                       ///< Đảm bảo màn chỉ có đúng 1 SNAKE_HEAD
 };
