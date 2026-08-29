@@ -1,12 +1,11 @@
-// include/Snake/Level.h
 #pragma once
 #include <vector>
 #include <string>
-#include "Snake/snake/CellType.h"
+#include "enums/CellType.h"
 
 class Level {
 public:
-    void Init(int width, int height);              // tạo lưới trống, kích thước tùy chỉnh
+    void Init(int width, int height);
     bool LoadFromFile(const std::string& path);
     bool SaveToFile(const std::string& path) const;
 

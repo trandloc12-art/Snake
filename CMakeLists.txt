@@ -16,6 +16,8 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     include
     include/snake
     include/states
+    include/core
+    include/enums
 )
 
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)

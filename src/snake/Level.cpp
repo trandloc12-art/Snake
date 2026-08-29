@@ -1,19 +1,20 @@
 // src/Snake/Level.cpp
-#include "Snake/snake/Level.h"
+#include "snake/Level.h"
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
 
 // Chuyển CellType -> chuỗi để ghi file
+// Trong CellToString() và StringToCell() — chỉ sửa 4 dòng liên quan tới hướng
 static std::string CellToString(CellType type) {
     switch (type) {
         case CellType::EMPTY: return "0";
         case CellType::WALL: return "WALL";
         case CellType::SNAKE_HEAD: return "HEAD";
-        case CellType::SNAKE_UP: return "UP";
-        case CellType::SNAKE_DOWN: return "DOWN";
-        case CellType::SNAKE_LEFT: return "LEFT";
-        case CellType::SNAKE_RIGHT: return "RIGHT";
+        case CellType::SNAKE_LINK_UP: return "LINK_UP";
+        case CellType::SNAKE_LINK_DOWN: return "LINK_DOWN";
+        case CellType::SNAKE_LINK_LEFT: return "LINK_LEFT";
+        case CellType::SNAKE_LINK_RIGHT: return "LINK_RIGHT";
     }
     return "0";
 }
@@ -24,10 +25,10 @@ static CellType StringToCell(const std::string& token) {
         {"0", CellType::EMPTY},
         {"WALL", CellType::WALL},
         {"HEAD", CellType::SNAKE_HEAD},
-        {"UP", CellType::SNAKE_UP},
-        {"DOWN", CellType::SNAKE_DOWN},
-        {"LEFT", CellType::SNAKE_LEFT},
-        {"RIGHT", CellType::SNAKE_RIGHT},
+        {"LINK_UP", CellType::SNAKE_LINK_UP},
+        {"LINK_DOWN", CellType::SNAKE_LINK_DOWN},
+        {"LINK_LEFT", CellType::SNAKE_LINK_LEFT},
+        {"LINK_RIGHT", CellType::SNAKE_LINK_RIGHT},
     };
     auto it = map.find(token);
     return it != map.end() ? it->second : CellType::EMPTY;

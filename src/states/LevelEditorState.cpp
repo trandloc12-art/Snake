@@ -1,7 +1,8 @@
 // src/states/LevelEditorState.cpp
-#include "Snake/states/LevelEditorState.h"
+#include "states/LevelEditorState.h"
 #include "raylib.h"
 #include <string>
+#include "enums/CellType.h"  
 
 /// Reset về bước hỏi width, xóa input cũ và cờ hasHead — gọi khi vừa vào state.
 void LevelEditorState::Init() {
@@ -52,10 +53,10 @@ void LevelEditorState::Update() {
     if (IsKeyPressed(KEY_ZERO)) currentBrush = CellType::EMPTY;
     if (IsKeyPressed(KEY_ONE))  currentBrush = CellType::WALL;
     if (IsKeyPressed(KEY_H))    currentBrush = CellType::SNAKE_HEAD;
-    if (IsKeyPressed(KEY_UP))    currentBrush = CellType::SNAKE_UP;
-    if (IsKeyPressed(KEY_DOWN))  currentBrush = CellType::SNAKE_DOWN;
-    if (IsKeyPressed(KEY_LEFT))  currentBrush = CellType::SNAKE_LEFT;
-    if (IsKeyPressed(KEY_RIGHT)) currentBrush = CellType::SNAKE_RIGHT;
+    if (IsKeyPressed(KEY_UP))    currentBrush = CellType::SNAKE_LINK_UP;
+    if (IsKeyPressed(KEY_DOWN))  currentBrush = CellType::SNAKE_LINK_DOWN;
+    if (IsKeyPressed(KEY_LEFT))  currentBrush = CellType::SNAKE_LINK_LEFT;
+    if (IsKeyPressed(KEY_RIGHT)) currentBrush = CellType::SNAKE_LINK_RIGHT;
 
     // Giữ chuột trái để "sơn" ô liên tục; chặn đặt HEAD thứ 2
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
@@ -103,11 +104,11 @@ void LevelEditorState::Draw() {
             switch (level.GetCell(x, y)) {
                 case CellType::WALL: c = DARKGRAY; break;
                 case CellType::SNAKE_HEAD: c = RED; break;
-                case CellType::SNAKE_UP:
-                case CellType::SNAKE_DOWN:
-                case CellType::SNAKE_LEFT:
-                case CellType::SNAKE_RIGHT: c = GREEN; break;
-                default: c = RAYWHITE; break; // EMPTY
+                case CellType::SNAKE_LINK_UP:
+                case CellType::SNAKE_LINK_DOWN:
+                case CellType::SNAKE_LINK_LEFT:
+                case CellType::SNAKE_LINK_RIGHT: c = GREEN; break;
+                default: c = RAYWHITE; break;
             }
             DrawRectangleRec(cell, c);
             DrawRectangleLinesEx(cell, 1, LIGHTGRAY);

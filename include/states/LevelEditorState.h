@@ -1,8 +1,8 @@
 // include/states/LevelEditorState.h
 #pragma once
 #include <string>
-#include "Snake/snake/Level.h"
-#include "Snake/snake/CellType.h"
+#include "Snake/Level.h"
+#include "enums/CellType.h"
 
 /// Các bước con trong quy trình tạo màn chơi.
 enum class EditorPhase {
