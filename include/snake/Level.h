@@ -2,7 +2,7 @@
 #pragma once
 #include <vector>
 #include <string>
-#include "CellType.h"
+#include "Snake/snake/CellType.h"
 
 class Level {
 public:
