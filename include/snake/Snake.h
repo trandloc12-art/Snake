@@ -27,6 +27,10 @@ public:
     bool OccupiesCell(int x, int y) const;
     const std::deque<Vector2>& GetSegments() const { return segments; }
 
+    /// Hướng di chuyển hiện tại — dùng bởi SnakeRenderer để xoay đầu rắn
+    /// đúng hướng khi thân rắn chỉ có 1 đốt duy nhất (không có đốt kế để tính hướng).
+    Direction GetCurrentDirection() const { return currentDirection; }
+
 private:
     std::deque<Vector2> segments; // segments.front() = đầu, segments.back() = đuôi
     Direction currentDirection = Direction::RIGHT;
