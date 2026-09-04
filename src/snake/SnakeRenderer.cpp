@@ -11,12 +11,26 @@ namespace {
         return Direction::UP;
     }
 
-    float DirectionToRotation(Direction dir) {
+    // Đầu vẽ sẵn chỉ LÊN (UP) = 0°. Xoay CW: UP -> RIGHT -> DOWN -> LEFT = 0/90/180/270.
+    // (dùng cho ĐẦU)
+    float HeadRotation(Direction dir) {
         switch (dir) {
             case Direction::UP:    return 0.0f;
             case Direction::RIGHT: return 90.0f;
             case Direction::DOWN:  return 180.0f;
             case Direction::LEFT:  return 270.0f;
+        }
+        return 0.0f;
+    }
+
+    // Đuôi vẽ sẵn chỉ XUỐNG (DOWN) = 0°. Xoay CW: DOWN -> LEFT -> UP -> RIGHT = 0/90/180/270.
+    // (dùng RIÊNG cho ĐUÔI — khác offset với đầu vì 2 ảnh vẽ ngược hướng nhau)
+    float TailRotation(Direction dir) {
+        switch (dir) {
+            case Direction::DOWN:  return 0.0f;
+            case Direction::LEFT:  return 90.0f;
+            case Direction::UP:    return 180.0f;
+            case Direction::RIGHT: return 270.0f;
         }
         return 0.0f;
     }
@@ -28,38 +42,30 @@ namespace {
                (dirIn == Direction::RIGHT && dirOut == Direction::LEFT);
     }
 
+    // Thân thẳng vẽ sẵn DỌC (nối UP-DOWN) = 0° — giữ nguyên, đúng với ảnh.
     float StraightRotation(Direction dirIn) {
         bool vertical = (dirIn == Direction::UP || dirIn == Direction::DOWN);
         return vertical ? 0.0f : 90.0f;
     }
 
+    // Góc cua vẽ sẵn nối LEFT + DOWN = 0°.
+    // Xoay 90° CW mỗi bước: LEFT+DOWN -> UP+LEFT -> RIGHT+UP -> DOWN+RIGHT.
     float CornerRotation(Direction dirIn, Direction dirOut) {
-        bool hasDown  = (dirIn == Direction::DOWN  || dirOut == Direction::DOWN);
-        bool hasRight = (dirIn == Direction::RIGHT || dirOut == Direction::RIGHT);
-        bool hasUp    = (dirIn == Direction::UP    || dirOut == Direction::UP);
         bool hasLeft  = (dirIn == Direction::LEFT  || dirOut == Direction::LEFT);
+        bool hasDown  = (dirIn == Direction::DOWN  || dirOut == Direction::DOWN);
+        bool hasUp    = (dirIn == Direction::UP    || dirOut == Direction::UP);
+        bool hasRight = (dirIn == Direction::RIGHT || dirOut == Direction::RIGHT);
 
-        if (hasDown && hasRight) return 0.0f;
-        if (hasDown && hasLeft)  return 90.0f;
-        if (hasUp   && hasLeft)  return 180.0f;
-        return 270.0f;
+        if (hasLeft  && hasDown)  return 0.0f;   // nối LEFT + DOWN
+        if (hasUp    && hasLeft)  return 90.0f;  // nối UP + LEFT
+        if (hasRight && hasUp)    return 180.0f; // nối RIGHT + UP
+        return 270.0f;                            // nối DOWN + RIGHT
     }
 }
 
 SnakeRenderer::SnakeRenderer(const AssetManager& assets) : assets(assets) {}
 
 void SnakeRenderer::Draw(const Snake& snake, int cellSize) const {
-    // Cho phép cả 2 chiều: phóng to (cellSize là bội số của source)
-    // hoặc thu nhỏ (source là bội số của cellSize) - miễn tỷ lệ là số nguyên sạch.
-    bool validScale = (cellSize >= TILE_SOURCE_SIZE)
-        ? (cellSize % TILE_SOURCE_SIZE == 0)
-        : (TILE_SOURCE_SIZE % cellSize == 0);
-
-    assert(validScale &&
-           "cellSize va TILE_SOURCE_SIZE phai co ty le la so nguyen (theo 1 trong 2 chieu)");
-           
-    float scale = (float)cellSize / TILE_SOURCE_SIZE; // luôn là số nguyên: 1.0, 2.0, 3.0...
-
     const auto& segments = snake.GetSegments();
     size_t lastIndex = segments.size() - 1;
 
@@ -71,14 +77,16 @@ void SnakeRenderer::Draw(const Snake& snake, int cellSize) const {
             tex = &assets.GetTexture("snake_head");
             if (segments.size() >= 2) {
                 Direction dir = DirectionFromTo(segments[1], segments[0]);
-                rotation = DirectionToRotation(dir);
+                rotation = HeadRotation(dir);       // <-- dùng HeadRotation
             } else {
-                rotation = DirectionToRotation(snake.GetCurrentDirection());
+                rotation = HeadRotation(snake.GetCurrentDirection());
             }
+
         } else if (i == lastIndex) {
             tex = &assets.GetTexture("snake_tail");
             Direction dir = DirectionFromTo(segments[lastIndex - 1], segments[lastIndex]);
-            rotation = DirectionToRotation(dir);
+            rotation = TailRotation(dir);            // <-- dùng TailRotation (offset khác đầu)
+
         } else {
             Direction dirIn  = DirectionFromTo(segments[i], segments[i - 1]);
             Direction dirOut = DirectionFromTo(segments[i], segments[i + 1]);
@@ -92,11 +100,10 @@ void SnakeRenderer::Draw(const Snake& snake, int cellSize) const {
             }
         }
 
+        float scale = (float)cellSize / TILE_SOURCE_SIZE;
         Vector2 pos = { segments[i].x * cellSize, segments[i].y * cellSize };
 
-        // source luôn lấy đúng kích thước gốc của ảnh (không co giãn ở bước này)
         Rectangle source = { 0, 0, (float)TILE_SOURCE_SIZE, (float)TILE_SOURCE_SIZE };
-        // dest dùng cellSize thật -> đây là nơi phép "scale" thực sự diễn ra
         Rectangle dest = { pos.x + cellSize / 2.0f, pos.y + cellSize / 2.0f,
                             (float)cellSize, (float)cellSize };
         Vector2 origin = { cellSize / 2.0f, cellSize / 2.0f };

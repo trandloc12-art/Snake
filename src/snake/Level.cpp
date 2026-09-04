@@ -1,8 +1,12 @@
 // src/Snake/Level.cpp
 #include "snake/Level.h"
+#include "snake/Level.h"
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
+#include <filesystem>
+#include <iostream>
+
 
 // Chuyển CellType -> chuỗi để ghi file
 // Trong CellToString() và StringToCell() — chỉ sửa 4 dòng liên quan tới hướng
@@ -62,8 +66,26 @@ bool Level::LoadFromFile(const std::string& path) {
 }
 
 bool Level::SaveToFile(const std::string& path) const {
+    // Tự tạo thư mục cha nếu chưa tồn tại (ví dụ "assets/levels/" chưa có sẵn).
+    // Không làm điều này -> std::ofstream sẽ âm thầm mở file thất bại, is_open() = false.
+    std::filesystem::path filePath(path);
+    std::filesystem::path parentDir = filePath.parent_path();
+
+    if (!parentDir.empty() && !std::filesystem::exists(parentDir)) {
+        std::error_code ec;
+        bool created = std::filesystem::create_directories(parentDir, ec);
+        if (!created && ec) {
+            std::cerr << "Level::SaveToFile - Khong the tao thu muc '"
+                      << parentDir << "': " << ec.message() << "\n";
+            return false;
+        }
+    }
+
     std::ofstream file(path);
-    if (!file.is_open()) return false;
+    if (!file.is_open()) {
+        std::cerr << "Level::SaveToFile - Khong the mo file de ghi: " << path << "\n";
+        return false;
+    }
 
     for (const auto& row : grid) {
         for (size_t x = 0; x < row.size(); x++) {
@@ -74,6 +96,7 @@ bool Level::SaveToFile(const std::string& path) const {
     }
     return true;
 }
+
 
 CellType Level::GetCell(int x, int y) const {
     if (y < 0 || y >= height || x < 0 || x >= width) return CellType::WALL;

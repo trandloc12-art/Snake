@@ -20,6 +20,11 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     include/enums
 )
 
+# Thêm dòng này sau add_executable(), TRƯỚC target_link_libraries() cũng được, không quan trọng thứ tự
+target_compile_definitions(${PROJECT_NAME} PRIVATE
+    PROJECT_SOURCE_DIR="${CMAKE_SOURCE_DIR}/"
+)
+
 target_link_libraries(${PROJECT_NAME} PRIVATE raylib)
 
 if(EXISTS "${CMAKE_SOURCE_DIR}/assets")

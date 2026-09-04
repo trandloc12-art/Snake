@@ -1,55 +1,93 @@
-// src/states/LevelEditorState.cpp
 #include "states/LevelEditorState.h"
+#include "Game.h"
+#include "enums/GameState.h"
+#include "core/Constants.h"
 #include "raylib.h"
 #include <string>
-#include "enums/CellType.h"  
+#include <iostream>
 
-/// Reset về bước hỏi width, xóa input cũ và cờ hasHead — gọi khi vừa vào state.
+LevelEditorState::LevelEditorState(Game& game) : game(game) {}
+
 void LevelEditorState::Init() {
     phase = EditorPhase::ASK_WIDTH;
     inputBuffer.clear();
     hasHead = false;
+    lastSaveMessage.clear();
 }
 
-/// Xử lý input mỗi frame: ASK_WIDTH/ASK_HEIGHT nhận số qua bàn phím,
-/// DRAWING nhận brush + chuột để vẽ ô, và phím S để lưu file.
 void LevelEditorState::Update() {
-    // --- Bước nhập số (dùng chung cho cả width và height) ---
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        game.ChangeState(GameState::MENU);
+        return;
+    }
+
+    // ---- Bước nhập số (width/height) — dùng chung logic đọc số ----
     if (phase == EditorPhase::ASK_WIDTH || phase == EditorPhase::ASK_HEIGHT) {
-        // Đọc mọi ký tự gõ trong frame này (có thể nhiều ký tự nếu gõ nhanh)
         int key = GetCharPressed();
         while (key > 0) {
             if (key >= '0' && key <= '9' && inputBuffer.length() < 3)
                 inputBuffer += (char)key;
             key = GetCharPressed();
         }
-
-        // Xóa ký tự cuối
         if (IsKeyPressed(KEY_BACKSPACE) && !inputBuffer.empty())
             inputBuffer.pop_back();
 
-        // Xác nhận giá trị, chuyển bước tiếp theo
         if (IsKeyPressed(KEY_ENTER) && !inputBuffer.empty()) {
             int value = std::stoi(inputBuffer);
             inputBuffer.clear();
-
             if (phase == EditorPhase::ASK_WIDTH) {
                 pendingWidth = value;
                 phase = EditorPhase::ASK_HEIGHT;
             } else {
-                level.Init(pendingWidth, value); // đủ width+height -> tạo lưới trống
+                level.Init(pendingWidth, value);
                 phase = EditorPhase::DRAWING;
             }
         }
-        return; // chưa vẽ thì không xử lý chuột/brush bên dưới
+        return;
     }
 
-    // --- Bước vẽ màn ---
+    // ---- Bước nhập tên file (chữ + số) ----
+    if (phase == EditorPhase::ASK_FILENAME) {
+        int key = GetCharPressed();
+        while (key > 0) {
+            // Cho phép chữ cái, số, dấu gạch dưới - tránh ký tự đặc biệt gây lỗi tên file
+            bool valid = (key >= '0' && key <= '9') ||
+                         (key >= 'a' && key <= 'z') ||
+                         (key >= 'A' && key <= 'Z') ||
+                         key == '_';
+            if (valid && inputBuffer.length() < 30) {
+                inputBuffer += (char)key;
+            }
+            key = GetCharPressed();
+        }
+        if (IsKeyPressed(KEY_BACKSPACE) && !inputBuffer.empty())
+            inputBuffer.pop_back();
+
+        if (IsKeyPressed(KEY_ENTER) && !inputBuffer.empty()) {
+            std::string fullPath = std::string(LEVELS_DIRECTORY) +"/" + inputBuffer + ".txt";
+
+            bool success = level.SaveToFile(fullPath);
+            lastSaveMessage = success
+                ? ("Da luu: " + inputBuffer + ".txt")
+                : "LOI: Khong the luu file!";
+
+            inputBuffer.clear();
+            phase = EditorPhase::DRAWING;
+        }
+
+        if (IsKeyPressed(KEY_ESCAPE)) {
+            // Hủy đặt tên, quay lại vẽ (không lưu)
+            inputBuffer.clear();
+            phase = EditorPhase::DRAWING;
+        }
+        return;
+    }
+
+    // ---- Bước DRAWING ----
     Vector2 mouse = GetMousePosition();
-    int cellX = (int)(mouse.x / cellSize); // đổi pixel -> tọa độ ô
+    int cellX = (int)(mouse.x / cellSize);
     int cellY = (int)(mouse.y / cellSize);
 
-    // Đổi brush bằng phím tắt
     if (IsKeyPressed(KEY_ZERO)) currentBrush = CellType::EMPTY;
     if (IsKeyPressed(KEY_ONE))  currentBrush = CellType::WALL;
     if (IsKeyPressed(KEY_H))    currentBrush = CellType::SNAKE_HEAD;
@@ -58,44 +96,42 @@ void LevelEditorState::Update() {
     if (IsKeyPressed(KEY_LEFT))  currentBrush = CellType::SNAKE_LINK_LEFT;
     if (IsKeyPressed(KEY_RIGHT)) currentBrush = CellType::SNAKE_LINK_RIGHT;
 
-    // Giữ chuột trái để "sơn" ô liên tục; chặn đặt HEAD thứ 2
     if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
         if (currentBrush == CellType::SNAKE_HEAD && hasHead) {
-            // đã có head, bỏ qua click này
+            // đã có head, bỏ qua
         } else {
             if (currentBrush == CellType::SNAKE_HEAD) hasHead = true;
             level.SetCell(cellX, cellY, currentBrush);
         }
     }
-
-    // Click phải 1 lần để xóa ô (đặt về EMPTY)
     if (IsMouseButtonPressed(MOUSE_BUTTON_RIGHT)) {
         if (level.GetCell(cellX, cellY) == CellType::SNAKE_HEAD) hasHead = false;
         level.SetCell(cellX, cellY, CellType::EMPTY);
     }
 
-    // Lưu màn ra file
+    // Bấm S -> chuyển sang bước NHẬP TÊN FILE, không lưu ngay lập tức
     if (IsKeyPressed(KEY_S)) {
-        level.SaveToFile("assets/levels/level1.txt");
+        phase = EditorPhase::ASK_FILENAME;
+        inputBuffer.clear();
+        lastSaveMessage.clear();
     }
 }
 
-/// Vẽ giao diện mỗi frame: ô nhập số ở 2 bước đầu, lưới màn chơi + hướng dẫn ở bước vẽ.
 void LevelEditorState::Draw() {
-    // Màn hình nhập width
     if (phase == EditorPhase::ASK_WIDTH) {
         DrawText("Nhap chieu rong (width), Enter de xac nhan:", 20, 20, 20, BLACK);
         DrawText(inputBuffer.c_str(), 20, 50, 30, DARKBLUE);
+        DrawText("ESC: Quay lai Menu", 20, 550, 16, GRAY);
         return;
     }
-    // Màn hình nhập height
     if (phase == EditorPhase::ASK_HEIGHT) {
         DrawText("Nhap chieu cao (height), Enter de xac nhan:", 20, 20, 20, BLACK);
         DrawText(inputBuffer.c_str(), 20, 50, 30, DARKBLUE);
+        DrawText("ESC: Quay lai Menu", 20, 550, 16, GRAY);
         return;
     }
 
-    // Vẽ từng ô trong lưới theo loại CellType, kèm viền để thấy rõ ranh giới ô
+    // Vẽ lưới màn chơi (luôn hiển thị, kể cả lúc đang nhập tên file, để không mất ngữ cảnh)
     for (int y = 0; y < level.GetHeight(); y++) {
         for (int x = 0; x < level.GetWidth(); x++) {
             Rectangle cell = { (float)(x * cellSize), (float)(y * cellSize),
@@ -115,8 +151,21 @@ void LevelEditorState::Draw() {
         }
     }
 
-    // Thanh hướng dẫn phím tắt, đặt ngay dưới lưới
     int uiY = level.GetHeight() * cellSize + 10;
-    DrawText("0:Empty 1:Wall H:Head Arrow:SnakeDir  S:Save  LeftClick:Ve  RightClick:Xoa",
-              10, uiY, 16, DARKGRAY);
+
+    if (phase == EditorPhase::ASK_FILENAME) {
+        // Vẽ 1 lớp phủ mờ để làm nổi bật hộp nhập tên file
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.5f));
+        DrawText("Nhap ten file (khong dau, khong khoang trang):", 200, 250, 20, WHITE);
+        DrawText((inputBuffer + "_").c_str(), 200, 280, 30, YELLOW); // dấu "_" giả làm con trỏ nhấp nháy
+        DrawText("ENTER: Luu | ESC: Huy", 200, 320, 16, LIGHTGRAY);
+        return;
+    }
+
+    DrawText("0:Empty 1:Wall H:Head Arrow:SnakeLink  S:Save  ESC:Menu", 10, uiY, 16, DARKGRAY);
+
+    if (!lastSaveMessage.empty()) {
+        Color msgColor = (lastSaveMessage.find("LOI") == 0) ? RED : DARKGREEN;
+        DrawText(lastSaveMessage.c_str(), 10, uiY + 25, 16, msgColor);
+    }
 }
