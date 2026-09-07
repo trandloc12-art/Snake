@@ -5,6 +5,8 @@
 #include "core/Constants.h"
 #include <vector>
 #include <iostream>
+#include <cmath> 
+
 
 PlayingState::PlayingState(Game& game, const AssetManager& assets)
     : game(game), assets(assets), snakeRenderer(assets) {}
@@ -29,6 +31,10 @@ void PlayingState::Init() {
     moveTimer = 0.0f;
     score = 0;
     SpawnFood();
+
+    // MỚI: mỗi lần vào lại Playing (chơi mới hoặc chơi lại) đều đếm ngược từ đầu
+    countdownTimer = 3.0f;
+    isCountingDown = true;
 }
 
 bool PlayingState::IsWallAt(int x, int y) const {
@@ -52,6 +58,15 @@ void PlayingState::SpawnFood() {
 void PlayingState::Update() {
     if (IsKeyPressed(KEY_ESCAPE)) {
         game.ChangeState(GameState::MENU);
+        return;
+    }
+
+    // MỚI: trong lúc đếm ngược, chỉ trừ thời gian, không xử lý gì khác
+    if (isCountingDown) {
+        countdownTimer -= GetFrameTime();
+        if (countdownTimer <= 0.0f) {
+            isCountingDown = false;
+        }
         return;
     }
 
@@ -135,4 +150,17 @@ void PlayingState::Draw() {
     snakeRenderer.Draw(snake, cellSize);
 
     DrawText(TextFormat("Diem: %d", score), 10, 10, 20, BLACK);
+
+     // MỚI: hiện số đếm ngược đè lên trên cùng
+    if (isCountingDown) {
+        int secondsLeft = (int)std::ceil(countdownTimer);
+        if (secondsLeft < 1) secondsLeft = 1; // tránh hiện số 0 hoặc âm ở khung hình cuối
+
+        
+        const char* text = TextFormat("%d", secondsLeft);
+        int fontSize = 80;
+        int textWidth = MeasureText(text, fontSize);
+        DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.4f)); // làm tối nền cho dễ nhìn số
+        DrawText(text, GetScreenWidth() / 2 - textWidth / 2, GetScreenHeight() / 2 - fontSize / 2, fontSize, YELLOW);
+    }
 }

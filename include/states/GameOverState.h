@@ -13,4 +13,5 @@ public:
 
 private:
     Game& game;
+    int selectedOption = 0; // 0 = Choi lai, 1 = Ve Menu
 };
