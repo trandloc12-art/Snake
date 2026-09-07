@@ -16,7 +16,7 @@ constexpr int DEFAULT_CELL_SIZE = 32;
 
 // ---------- Gameplay: Rắn ----------
 constexpr int DEFAULT_SNAKE_LENGTH = 3;
-constexpr float DEFAULT_MOVE_INTERVAL = 0.15f;
+constexpr float DEFAULT_MOVE_INTERVAL = 1.0f;
 
 // ---------- Gameplay: Level Editor ----------
 constexpr int MAX_LEVEL_WIDTH = 100;

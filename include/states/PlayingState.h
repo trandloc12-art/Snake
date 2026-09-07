@@ -7,6 +7,7 @@
 #include "enums/Direction.h"
 
 class Game;
+    
 
 class PlayingState {
 public:
@@ -35,4 +36,7 @@ private:
 
     Vector2 foodPosition = { -1, -1 };
     int score = 0;
+    // MỚI: đếm ngược chuẩn bị trước khi chơi
+    float countdownTimer = 3.0f;
+    bool isCountingDown = true;
 };
