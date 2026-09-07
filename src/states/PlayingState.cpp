@@ -147,7 +147,10 @@ void PlayingState::Draw() {
     const Texture2D& foodTex = assets.GetTexture("food");
     DrawTileTexture(foodTex, (int)foodPosition.x, (int)foodPosition.y, cellSize);
     // Vẽ rắn
-    snakeRenderer.Draw(snake, cellSize);
+    if (moveInterval <= 0.0f) moveInterval = 0.01f; // tránh chia cho 0
+    float moveAlpha = moveTimer / moveInterval;
+
+    snakeRenderer.Draw(snake, cellSize, moveAlpha);
 
     DrawText(TextFormat("Diem: %d", score), 10, 10, 20, BLACK);
 

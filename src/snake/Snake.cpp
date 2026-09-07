@@ -128,6 +128,8 @@ void Snake::SetDirection(Direction newDirection) {
 }
 
 void Snake::Move(bool grow) {
+    prevSegments = segments;   // MỚI — chụp lại state trước khi thay đổi, mọi logic bên dưới giữ nguyên
+
     Vector2 head = segments.front();
     switch (currentDirection) {
         case Direction::UP:    head.y -= 1; break;

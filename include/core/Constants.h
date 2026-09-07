@@ -16,7 +16,7 @@ constexpr int DEFAULT_CELL_SIZE = 64; // kích thước ô lưới (pixel) để
 
 // ---------- Gameplay: Rắn ----------
 constexpr int DEFAULT_SNAKE_LENGTH = 3;
-constexpr float DEFAULT_MOVE_INTERVAL = 0.15f; // 1 giây / bước, sẽ giảm dần khi ăn mồi
+constexpr float DEFAULT_MOVE_INTERVAL = 0.2f; // thời gian giữa các bước di chuyển
 
 // ---------- Gameplay: Level Editor ----------
 constexpr int MAX_LEVEL_WIDTH = 100;

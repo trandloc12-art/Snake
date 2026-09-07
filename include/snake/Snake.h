@@ -27,11 +27,16 @@ public:
     bool OccupiesCell(int x, int y) const;
     const std::deque<Vector2>& GetSegments() const { return segments; }
 
+    /// Lưu lại trạng thái trước khi Move() để có thể Undo (quay lại bước trước).
+    const std::deque<Vector2>& GetPrevSegments() const { return prevSegments; }
+
+
     /// Hướng di chuyển hiện tại — dùng bởi SnakeRenderer để xoay đầu rắn
     /// đúng hướng khi thân rắn chỉ có 1 đốt duy nhất (không có đốt kế để tính hướng).
     Direction GetCurrentDirection() const { return currentDirection; }
 
 private:
     std::deque<Vector2> segments; // segments.front() = đầu, segments.back() = đuôi
+    std::deque<Vector2> prevSegments; // MỚI: vị trí trước lần Move() gần nhất, dùng để nội suy khi vẽ
     Direction currentDirection = Direction::RIGHT;
 };

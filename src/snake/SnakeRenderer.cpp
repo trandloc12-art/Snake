@@ -35,7 +35,7 @@ namespace {
         return 0.0f;
     }
 
-    bool IsStraight(Direction dirIn, Direction dirOut) {
+    bool IsStraight(Direction dirIn, Direction dirOut) {// true nếu 2 hướng nối thẳng hàng (cùng trục X hoặc cùng trục Y)
         return (dirIn == Direction::UP && dirOut == Direction::DOWN) ||
                (dirIn == Direction::DOWN && dirOut == Direction::UP) ||
                (dirIn == Direction::LEFT && dirOut == Direction::RIGHT) ||
@@ -65,16 +65,22 @@ namespace {
 
 SnakeRenderer::SnakeRenderer(const AssetManager& assets) : assets(assets) {}
 
-void SnakeRenderer::Draw(const Snake& snake, int cellSize) const {
+void SnakeRenderer::Draw(const Snake& snake, int cellSize, float moveAlpha) const {
     const auto& segments = snake.GetSegments();
+    const auto& prevSegments = snake.GetPrevSegments();
+    float alpha = std::clamp(moveAlpha, 0.0f, 1.0f);
+
     size_t lastIndex = segments.size() - 1;
 
     for (size_t i = 0; i < segments.size(); i++) {
         const Texture2D* tex;
         float rotation = 0.0f;
-
+        bool interpolate = false; // MỚI: chỉ true cho đầu/đuôi
+        
         if (i == 0) {
             tex = &assets.GetTexture("snake_head");
+            interpolate = true;
+
             if (segments.size() >= 2) {
                 Direction dir = DirectionFromTo(segments[1], segments[0]);
                 rotation = HeadRotation(dir);       // <-- dùng HeadRotation
@@ -84,6 +90,7 @@ void SnakeRenderer::Draw(const Snake& snake, int cellSize) const {
 
         } else if (i == lastIndex) {
             tex = &assets.GetTexture("snake_tail");
+            interpolate = true;
             Direction dir = DirectionFromTo(segments[lastIndex - 1], segments[lastIndex]);
             rotation = TailRotation(dir);            // <-- dùng TailRotation (offset khác đầu)
 
@@ -92,6 +99,7 @@ void SnakeRenderer::Draw(const Snake& snake, int cellSize) const {
             Direction dirOut = DirectionFromTo(segments[i], segments[i + 1]);
 
             if (IsStraight(dirIn, dirOut)) {
+                interpolate = true;
                 tex = &assets.GetTexture("snake_body_straight");
                 rotation = StraightRotation(dirIn);
             } else {
@@ -101,7 +109,17 @@ void SnakeRenderer::Draw(const Snake& snake, int cellSize) const {
         }
 
         float scale = (float)cellSize / TILE_SOURCE_SIZE;
-        Vector2 pos = { segments[i].x * cellSize, segments[i].y * cellSize };
+
+        // Nội suy vị trí giữa ô cũ (prevSegments) và ô mới (segments)
+       Vector2 pos;
+    if (interpolate) {
+        Vector2 prev = (i < prevSegments.size()) ? prevSegments[i] : segments[i];
+        float interpX = prev.x + (segments[i].x - prev.x) * alpha;
+        float interpY = prev.y + (segments[i].y - prev.y) * alpha;
+        pos = { interpX * cellSize, interpY * cellSize };
+    } else {
+        pos = { segments[i].x * cellSize, segments[i].y * cellSize };
+    }
 
         Rectangle source = { 0, 0, (float)TILE_SOURCE_SIZE, (float)TILE_SOURCE_SIZE };
         Rectangle dest = { pos.x + cellSize / 2.0f, pos.y + cellSize / 2.0f,
