@@ -1,5 +1,6 @@
 #include "Game.h"
 #include "core/Constants.h"
+#include <iostream>
 
 Game::Game()
     : currentState(GameState::MENU),
@@ -48,6 +49,7 @@ void Game::Update() {
             menuState.Update();
             break;
         case GameState::LEVEL_SELECT:
+
             if (justEntered) levelSelectState.Init();
             levelSelectState.Update();
             break;
@@ -64,8 +66,9 @@ void Game::Update() {
             gameOverState.Update();
             break;
     }
-
-    previousState = currentState;
+    if (justEntered) {
+        previousState = currentState;
+    }
 }
 
 void Game::Draw() {
