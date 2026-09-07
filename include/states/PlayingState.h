@@ -8,27 +8,27 @@
 
 class Game;
 
-/// State chơi chính: chứa Level (bản đồ), Snake (dữ liệu), SnakeRenderer (vẽ),
-/// xử lý input, di chuyển theo nhịp thời gian cố định, ăn mồi, va chạm.
 class PlayingState {
 public:
     PlayingState(Game& game, const AssetManager& assets);
 
-    void Init();   // load Level từ đường dẫn Game.GetSelectedLevelPath(), dựng Snake
+    void Init();
     void Update();
     void Draw();
 
 private:
-    void SpawnFood();          // đặt mồi mới ở 1 ô trống ngẫu nhiên
+    void SpawnFood();
     bool IsWallAt(int x, int y) const;
+    void DrawLevel() const; // MỚI: tách riêng việc vẽ tường ra 1 hàm cho gọn Draw()
 
     Game& game;
-    SnakeRenderer snakeRenderer; // khởi tạo với assets, không tự sở hữu texture
+    const AssetManager& assets; // MỚI: giữ tham chiếu để tự lấy texture wall/food
+    SnakeRenderer snakeRenderer;
 
     Level level;
     Snake snake;
 
-    Direction pendingDirection = Direction::RIGHT; // hướng người chơi vừa bấm, áp dụng ở bước di chuyển kế tiếp
+    Direction pendingDirection = Direction::RIGHT;
     float moveTimer = 0.0f;
     float moveInterval = 0.15f;
     int cellSize = 32;

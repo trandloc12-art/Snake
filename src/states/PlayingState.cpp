@@ -6,16 +6,12 @@
 #include <vector>
 #include <iostream>
 
-
 PlayingState::PlayingState(Game& game, const AssetManager& assets)
-    : game(game), snakeRenderer(assets) {}
+    : game(game), assets(assets), snakeRenderer(assets) {}
 
 void PlayingState::Init() {
     bool loaded = level.LoadFromFile(game.GetSelectedLevelPath());
-
     if (!loaded) {
-        // Không load được -> không nên chơi với dữ liệu rác, quay lại Menu
-        // và báo lỗi rõ ràng thay vì im lặng tiếp tục.
         std::cerr << "PlayingState::Init - Khong the load level: "
                   << game.GetSelectedLevelPath() << "\n";
         game.ChangeState(GameState::MENU);
@@ -23,8 +19,6 @@ void PlayingState::Init() {
     }
 
     snake.InitFromLevel(level);
-
-    // Kiểm tra thêm: nếu Level không có HEAD, snake sẽ rỗng -> cũng nên chặn sớm
     if (snake.GetSegments().empty()) {
         std::cerr << "PlayingState::Init - Level khong co SNAKE_HEAD hop le\n";
         game.ChangeState(GameState::MENU);
@@ -36,12 +30,12 @@ void PlayingState::Init() {
     score = 0;
     SpawnFood();
 }
+
 bool PlayingState::IsWallAt(int x, int y) const {
     return level.GetCell(x, y) == CellType::WALL;
 }
 
 void PlayingState::SpawnFood() {
-    // Thu thập toàn bộ ô trống, không có tường và không có thân rắn
     std::vector<Vector2> emptyCells;
     for (int y = 0; y < level.GetHeight(); y++) {
         for (int x = 0; x < level.GetWidth(); x++) {
@@ -50,9 +44,7 @@ void PlayingState::SpawnFood() {
             }
         }
     }
-
-    if (emptyCells.empty()) return; // hết chỗ trống -> rắn đã chiếm toàn bộ màn (thắng)
-
+    if (emptyCells.empty()) return;
     int index = GetRandomValue(0, (int)emptyCells.size() - 1);
     foodPosition = emptyCells[index];
 }
@@ -85,14 +77,12 @@ void PlayingState::Update() {
 
     Vector2 newHead = snake.GetHeadPosition();
 
-    // Kiểm tra va chạm SAU khi di chuyển
     if (IsWallAt((int)newHead.x, (int)newHead.y)) {
         game.SetLastScore(score);
         game.ChangeState(GameState::GAME_OVER);
         return;
     }
 
-    // Kiểm tra tự cắn: bỏ qua chính đầu (index 0), kiểm tra từ đốt thứ 2 trở đi
     const auto& segments = snake.GetSegments();
     for (size_t i = 1; i < segments.size(); i++) {
         if ((int)segments[i].x == (int)newHead.x && (int)segments[i].y == (int)newHead.y) {
@@ -108,21 +98,35 @@ void PlayingState::Update() {
     }
 }
 
-void PlayingState::Draw() {
-    // Vẽ tường (tạm dùng hình chữ nhật màu — có thể đổi sang texture "wall" sau)
+// Vẽ 1 texture vừa khít vào ô lưới, không xoay - dùng chung cho tường và mồi.
+// Giữ chung logic DrawTexturePro với SnakeRenderer để đảm bảo mọi sprite trong game
+// đều co giãn/hiển thị theo cùng 1 quy tắc (source = kích thước gốc, dest = cellSize).
+static void DrawTileTexture(const Texture2D& tex, int gridX, int gridY, int cellSize) {
+    Rectangle source = { 0, 0, (float)tex.width, (float)tex.height };
+    Rectangle dest = { (float)(gridX * cellSize), (float)(gridY * cellSize),
+                        (float)cellSize, (float)cellSize };
+    Vector2 origin = { 0, 0 }; // không xoay -> origin góc trên-trái là đủ, không cần tâm ô
+    DrawTexturePro(tex, source, dest, origin, 0.0f, WHITE);
+}
+
+void PlayingState::DrawLevel() const {
+    const Texture2D& wallTex = assets.GetTexture("wall");
+
     for (int y = 0; y < level.GetHeight(); y++) {
         for (int x = 0; x < level.GetWidth(); x++) {
             if (IsWallAt(x, y)) {
-                DrawRectangle(x * cellSize, y * cellSize, cellSize, cellSize, DARKGRAY);
+                DrawTileTexture(wallTex, x, y, cellSize);
             }
         }
     }
+}
 
-    // Vẽ mồi
-    DrawRectangle((int)(foodPosition.x * cellSize), (int)(foodPosition.y * cellSize),
-                  cellSize, cellSize, RED);
+void PlayingState::Draw() {
+    DrawLevel();
 
-    // Vẽ rắn — giao toàn bộ việc vẽ cho SnakeRenderer
+    const Texture2D& foodTex = assets.GetTexture("food");
+    DrawTileTexture(foodTex, (int)foodPosition.x, (int)foodPosition.y, cellSize);
+
     snakeRenderer.Draw(snake, cellSize);
 
     DrawText(TextFormat("Diem: %d", score), 10, 10, 20, BLACK);
