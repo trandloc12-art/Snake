@@ -2,6 +2,7 @@
 #include <string>
 #include "Snake/Level.h"
 #include "enums/CellType.h"
+#include "core/Constants.h"
 
 class Game;
 
@@ -29,7 +30,7 @@ private:
 
     Level level;
     CellType currentBrush = CellType::WALL;
-    int cellSize = 32;
+    int cellSize = DEFAULT_CELL_SIZE; // kích thước ô lưới (pixel) để vẽ texture, có thể scale lên khi window to
     bool hasHead = false;
 
     std::string lastSaveMessage; // hiển thị "Da luu thanh cong" / lỗi, để người dùng thấy phản hồi

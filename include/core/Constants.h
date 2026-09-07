@@ -12,7 +12,7 @@ constexpr const char* WINDOW_TITLE = "Snake Game";
 
 // ---------- Sprite / Rendering ----------
 constexpr int TILE_SOURCE_SIZE = 64;
-constexpr int DEFAULT_CELL_SIZE = 32;
+constexpr int DEFAULT_CELL_SIZE = 64; // kích thước ô lưới (pixel) để vẽ texture, có thể scale lên khi window to
 
 // ---------- Gameplay: Rắn ----------
 constexpr int DEFAULT_SNAKE_LENGTH = 3;

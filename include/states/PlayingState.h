@@ -33,7 +33,7 @@ private:
     Direction pendingDirection = Direction::RIGHT;
     float moveTimer = 0.0f;
     float moveInterval = DEFAULT_MOVE_INTERVAL; // thời gian giữa các bước di chuyển, sẽ giảm dần khi ăn mồi
-    int cellSize = 32;
+    int cellSize = DEFAULT_CELL_SIZE; // kích thước ô lưới (pixel) để vẽ texture, có thể scale lên khi window to
 
     Vector2 foodPosition = { -1, -1 };
     int score = 0;

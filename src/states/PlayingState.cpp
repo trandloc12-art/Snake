@@ -117,7 +117,7 @@ void PlayingState::Update() {
 // Giữ chung logic DrawTexturePro với SnakeRenderer để đảm bảo mọi sprite trong game
 // đều co giãn/hiển thị theo cùng 1 quy tắc (source = kích thước gốc, dest = cellSize).
 static void DrawTileTexture(const Texture2D& tex, int gridX, int gridY, int cellSize) {
-    Rectangle source = { 0, 0, (float)tex.width, (float)tex.height };
+    Rectangle source = { 0, 0, (float)TILE_SOURCE_SIZE, (float)TILE_SOURCE_SIZE };
     Rectangle dest = { (float)(gridX * cellSize), (float)(gridY * cellSize),
                         (float)cellSize, (float)cellSize };
     Vector2 origin = { 0, 0 }; // không xoay -> origin góc trên-trái là đủ, không cần tâm ô
