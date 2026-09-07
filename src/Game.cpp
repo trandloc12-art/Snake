@@ -29,7 +29,7 @@ void Game::ChangeState(GameState newState) {
 }
 
 void Game::Run() {
-    while (!WindowShouldClose()) {
+    while (!WindowShouldClose() && !quitRequested ) {
         Update();
 
         BeginDrawing();
