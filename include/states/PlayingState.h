@@ -5,6 +5,7 @@
 #include "Snake/Level.h"
 #include "core/AssetManager.h"
 #include "enums/Direction.h"
+#include "core/Constants.h"
 
 class Game;
     
@@ -31,7 +32,7 @@ private:
 
     Direction pendingDirection = Direction::RIGHT;
     float moveTimer = 0.0f;
-    float moveInterval = 0.15f;
+    float moveInterval = DEFAULT_MOVE_INTERVAL; // thời gian giữa các bước di chuyển, sẽ giảm dần khi ăn mồi
     int cellSize = 32;
 
     Vector2 foodPosition = { -1, -1 };
