@@ -110,6 +110,10 @@ static void DrawTileTexture(const Texture2D& tex, int gridX, int gridY, int cell
 }
 
 void PlayingState::DrawLevel() const {
+    // Vẽ nền (background) trước, sau đó vẽ tường (wall) lên trên.
+    const Texture2D& backgroundTex = assets.GetTexture("playing_background");
+    DrawTexturePro(backgroundTex, { 0, 0, (float)backgroundTex.width, (float)backgroundTex.height }, { 0, 0, (float)WINDOW_WIDTH, (float)WINDOW_HEIGHT }, { 0, 0 }, 0.0f, WHITE);
+
     const Texture2D& wallTex = assets.GetTexture("wall");
 
     for (int y = 0; y < level.GetHeight(); y++) {
@@ -124,9 +128,10 @@ void PlayingState::DrawLevel() const {
 void PlayingState::Draw() {
     DrawLevel();
 
+    // Vẽ mồi
     const Texture2D& foodTex = assets.GetTexture("food");
     DrawTileTexture(foodTex, (int)foodPosition.x, (int)foodPosition.y, cellSize);
-
+    // Vẽ rắn
     snakeRenderer.Draw(snake, cellSize);
 
     DrawText(TextFormat("Diem: %d", score), 10, 10, 20, BLACK);

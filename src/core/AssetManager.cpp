@@ -15,6 +15,7 @@ void AssetManager::LoadAll() {
     LoadTextureChecked("snake_tail",          dir + "snake_tail.png");
     LoadTextureChecked("wall",                dir + "wall.png");
     LoadTextureChecked("food",                dir + "food.png");
+    LoadTextureChecked("playing_background", dir + "playing_background.png");
 }
 
 void AssetManager::LoadTextureChecked(const std::string& name, const std::string& path) {
