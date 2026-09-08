@@ -6,7 +6,7 @@
 
 // ---------- Cửa sổ game ----------
 constexpr int WINDOW_WIDTH = 1920;
-constexpr int WINDOW_HEIGHT = 1080;
+constexpr int WINDOW_HEIGHT = 1060;
 constexpr int TARGET_FPS = 60;
 constexpr const char* WINDOW_TITLE = "Snake Game";
 
