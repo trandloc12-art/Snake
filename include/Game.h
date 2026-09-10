@@ -33,9 +33,14 @@ public:
 
     void RequestQuit() { quitRequested = true; }// Các state gọi hàm này để yêu cầu thoát game (ví dụ: MenuState khi bấm ESC).
 
+    /// Cho các state không giữ sẵn AssetManager (Menu, GameOver...) mượn để tự lấy
+    /// texture UI trong Init(). PlayingState vẫn dùng tham chiếu riêng như cũ.
+    const AssetManager& GetAssets() const { return assets; }
+
 private:
     void Update();
     void Draw();
+    void InitCurrentState();
 
     // QUAN TRỌNG: assets phải khai báo TRƯỚC các state trong class, vì thứ tự
     // khởi tạo member trong C++ theo đúng thứ tự KHAI BÁO (không theo initializer

@@ -29,7 +29,7 @@ public:
 private:
     /// Load 1 texture, kiểm tra load thành công và đúng kích thước chuẩn (TILE_SOURCE_SIZE),
     /// đồng thời bật lọc ảnh dạng "point" để giữ pixel sắc nét khi scale.
-    void LoadTextureChecked(const std::string& name, const std::string& path);
+    void LoadTextureChecked(const std::string& name, const std::string& path, bool checkSize = true);
 
     std::unordered_map<std::string, Texture2D> textures;
 };
