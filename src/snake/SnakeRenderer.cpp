@@ -61,37 +61,31 @@ namespace {
         return 270.0f;
     }
 
-    // Chọn khung hình animation hiện tại cho 1 đốt, dựa theo:
+    // Chọn khung hình animation hiện tại cho THÂN/ĐUÔI/GÓC CUA, dựa theo:
     // - thời gian thực (time, giây) trừ đi thời điểm đốt đó được SINH RA (spawnTime)
     // - fps: tốc độ chạy khung hình
-    // - frameCount: TỔNG số khung hình của loại đốt này (đầu và thân/đuôi/góc cua có
-    //   thể có số khung khác nhau — xem 2 lời gọi khác nhau ở dưới cho nhánh đầu).
-    // Đốt càng gần ĐẦU thì spawnTime càng gần "now" -> (time - spawnTime) nhỏ -> frame
-    // sớm hơn; đốt gần ĐUÔI đã "sống" lâu hơn -> frame trễ hơn -> tạo cảm giác hoạ văn
-    // "chảy" dọc thân từ đầu xuống đuôi, giống hiệu ứng cũ nhưng KHÔNG còn phụ thuộc vào
-    // segmentIndex (vốn bị dịch +1 mỗi khi rắn di chuyển do push_front đầu mới) — nên
-    // không còn bị giật/lệch phase giữa các bước đi.
+    // - frameCount: tổng số khung hình
+    // Đốt càng gần ĐẦU thì spawnTime càng gần "now" -> frame sớm hơn; đốt gần ĐUÔI đã
+    // "sống" lâu hơn -> frame trễ hơn -> tạo cảm giác hoạ văn "chảy" dọc thân từ đầu
+    // xuống đuôi, ổn định qua các bước đi vì không phụ thuộc segmentIndex.
     int ComputeAnimFrame(double time, double spawnTime, int frameCount, float fps) {
         float framePos = static_cast<float>((time - spawnTime) * fps);
         int frame = static_cast<int>(std::floor(framePos));
         frame %= frameCount;
-        if (frame < 0) frame += frameCount; // % trong C++ có thể trả âm, chuẩn hoá lại về [0, frameCount)
+        if (frame < 0) frame += frameCount; // % trong C++ có thể trả âm
         return frame;
     }
 
-    // Đầu rắn: animation chạy đủ SNAKE_ANIM_FRAMES_HEAD khung trong đúng khoảng thời gian
-    // của MỘT bước di chuyển (moveInterval), và LUÔN reset về frame 0 khi rắn sang ô mới
-    // — vì spawnTimes[0] được Snake::Move() cập nhật lại thành "now" mỗi lần push_front
-    // đầu mới (xem Snake::Move). Khác với bản cũ (dùng đồng hồ tuyệt đối, chạy liên tục
-    // không phụ thuộc bước đi), giờ ta CHỦ ĐỘNG dùng lại chính spawnTime này để animation
-    // luôn khớp pha với lúc rắn đổi ô.
+    // Đầu rắn: animation chạy đủ SNAKE_ANIM_FRAMES_HEAD khung trong đúng khoảng thời
+    // gian của MỘT bước di chuyển (moveInterval), và LUÔN reset về frame 0 khi rắn sang
+    // ô mới — vì spawnTimes[0] được Snake::Move() cập nhật lại thành "now" mỗi lần
+    // push_front đầu mới (xem Snake::Move).
     int ComputeHeadAnimFrame(double time, double spawnTime, double moveInterval, int frameCount) {
         if (moveInterval <= 0.0) return 0;
         float progress = static_cast<float>((time - spawnTime) / moveInterval);
         int frame = static_cast<int>(std::floor(progress * frameCount));
-        // Clamp thay vì %, vì nếu rắn đứng yên lâu hơn moveInterval (ví dụ game pause,
-        // hoặc frame do lag bị trễ), ta muốn đầu GIỮ NGUYÊN ở khung cuối cùng chứ không
-        // lặp lại animation từ đầu một cách vô nghĩa.
+        // Clamp thay vì %: nếu rắn đứng yên lâu hơn moveInterval (pause, lag), đầu GIỮ
+        // NGUYÊN ở khung cuối thay vì lặp lại animation vô nghĩa.
         if (frame < 0) frame = 0;
         if (frame >= frameCount) frame = frameCount - 1;
         return frame;
@@ -106,11 +100,8 @@ void SnakeRenderer::SetSkin(const std::string& skinName) {
 
 void SnakeRenderer::Draw(const Snake& snake, int cellSize, float moveAlpha) const {
     // moveAlpha KHÔNG dùng để nội suy vị trí - mọi đốt snap đứng yên đúng ô lưới hiện
-    // tại (segments[i] * cellSize). Quyết định giữ snap-grid (không nội suy) vì nội suy
-    // vị trí gây gãy khớp hình học ở góc cua (corner sprite chỉ đúng hình tại thời điểm
-    // bẻ góc hoàn tất, không có texture nào khớp giữa chừng). Cảm giác "di chuyển mượt"
-    // đến hoàn toàn từ animation flipbook chạy theo đồng hồ thực. Giữ tham số này lại để
-    // không đổi chữ ký hàm Draw().
+    // tại (segments[i] * cellSize). Cảm giác "di chuyển mượt" đến hoàn toàn từ animation
+    // flipbook chạy theo đồng hồ thực. Giữ tham số này lại để không đổi chữ ký Draw().
     (void)moveAlpha;
 
     const auto& segments = snake.GetSegments();
@@ -138,30 +129,24 @@ void SnakeRenderer::Draw(const Snake& snake, int cellSize, float moveAlpha) cons
         const Texture2D* tex = nullptr;
         float rotation = 0.0f;
 
-       if (i == 0) {
+        if (i == 0) {
             Direction dir = (segments.size() >= 2)
                 ? DirectionFromTo(segments[1], segments[0])
                 : snake.GetCurrentDirection();
             rotation = HeadRotation(dir);
 
-            // Đầu rắn dùng bộ animation RIÊNG: SNAKE_ANIM_FRAMES_HEAD (số khung) chạy ở
-            // tốc độ SNAKE_ANIM_FPS_HEAD (khung/giây) — cả số khung lẫn tốc độ đều tách
-            // biệt hoàn toàn khỏi thân/đuôi/góc cua.
-            int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_HEAD, SNAKE_ANIM_FPS_HEAD);
-            tex = &assets.GetTexture("snake_head_" + std::to_string(frame));
->>>>>>> 4ff318258e408e1c4738609d3c5bd10dfcb46d9c
+            // Đầu: dùng DEFAULT_MOVE_INTERVAL (khoảng thời gian giữa 2 lần Move(), lấy
+            // từ Constants.h vì Snake không tự giữ giá trị này) làm mốc chạy hết
+            // SNAKE_ANIM_FRAMES_HEAD khung đúng trong 1 bước di chuyển.
+            int frame = ComputeHeadAnimFrame(time, spawnTimes[i], DEFAULT_MOVE_INTERVAL, SNAKE_ANIM_FRAMES_HEAD);
+            tex = &assets.GetTexture(skinPrefix + "snake_head_" + std::to_string(frame));
 
         } else if (i == lastIndex) {
             Direction dir = DirectionFromTo(segments[lastIndex - 1], segments[lastIndex]);
             rotation = TailRotation(dir);
 
-<<<<<<< HEAD
-            int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS);
-            tex = &assets.GetTexture(skinPrefix + "snake_tail_" + std::to_string(frame));
-=======
             int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS_BODY);
-            tex = &assets.GetTexture("snake_tail_" + std::to_string(frame));
->>>>>>> 4ff318258e408e1c4738609d3c5bd10dfcb46d9c
+            tex = &assets.GetTexture(skinPrefix + "snake_tail_" + std::to_string(frame));
 
         } else {
             Direction dirIn  = DirectionFromTo(segments[i], segments[i - 1]);
@@ -170,27 +155,13 @@ void SnakeRenderer::Draw(const Snake& snake, int cellSize, float moveAlpha) cons
             if (IsStraight(dirIn, dirOut)) {
                 rotation = StraightRotation(dirIn);
 
-<<<<<<< HEAD
-                int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS);
-                tex = &assets.GetTexture(skinPrefix + "snake_body_" + std::to_string(frame));
-=======
                 int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS_BODY);
-                tex = &assets.GetTexture("snake_body_" + std::to_string(frame));
->>>>>>> 4ff318258e408e1c4738609d3c5bd10dfcb46d9c
+                tex = &assets.GetTexture(skinPrefix + "snake_body_" + std::to_string(frame));
             } else {
                 rotation = CornerRotation(dirIn, dirOut);
 
-                // Góc cua dùng chung kiến trúc animation nhiều khung như thân/đầu/đuôi
-                // (asset thật nằm trong thư mục snake_corner/, tên file
-<<<<<<< HEAD
-                // snake_corner_0.png..snake_corner_7.png).
-                int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS);
-                tex = &assets.GetTexture(skinPrefix + "snake_corner_" + std::to_string(frame));
-=======
-                // snake_corner_0.png..snake_corner_N.png).
                 int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS_BODY);
-                tex = &assets.GetTexture("snake_corner_" + std::to_string(frame));
->>>>>>> 4ff318258e408e1c4738609d3c5bd10dfcb46d9c
+                tex = &assets.GetTexture(skinPrefix + "snake_corner_" + std::to_string(frame));
             }
         }
 

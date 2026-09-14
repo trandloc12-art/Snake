@@ -14,6 +14,7 @@ void AssetManager::LoadAll() {
     for (int s = 0; s < SNAKE_SKIN_COUNT; s++) {
         LoadSkinAnimations(SNAKE_SKINS[s], animationsDir);
     }
+
     // Các file không thuộc rắn: vẫn nằm trực tiếp trong TEXTURES_DIRECTORY như cũ.
     LoadTextureChecked("wall",               texturesDir + "wall.png");
     LoadTextureChecked("food",               texturesDir + "food.png");
@@ -35,33 +36,31 @@ void AssetManager::LoadAll() {
     LoadTextureChecked("logo_snake",             uiDir + "logo_snake.png",             false);
     LoadTextureChecked("title_game_over",        uiDir + "title_game_over.png",        false);
     LoadTextureChecked("sprite_dead_snake",      uiDir + "sprite_dead_snake.png",       false);
-    
 }
 
 void AssetManager::LoadSkinAnimations(const std::string& skinName, const std::string& animationsDir) {
     // vd skinName = "neon" -> skinDir = "assets/animations/neon/"
     //              prefix  = "neon_"  -> texture key "neon_snake_head_0", v.v.
-    std::string skinDir = "assets/animations/neon/";
-    std::string prefix  =  "neon_";
+    std::string skinDir = animationsDir + skinName + "/";
+    std::string prefix  = skinName + "_";
 
-    LoadAnimationFrames( "neon_snake_body",   skinDir, SNAKE_ANIM_FRAMES_BODY);
-    LoadAnimationFrames( "neon_snake_corner",   skinDir, SNAKE_ANIM_FRAMES_BODY);
-    LoadAnimationFrames( "neon_snake_tail",   skinDir, SNAKE_ANIM_FRAMES_BODY);
-    LoadAnimationFrames( "neon_snake_head", skinDir, SNAKE_ANIM_FRAMES_BODY);
+    LoadAnimationFrames(prefix + "snake_body",   skinDir, SNAKE_ANIM_FRAMES_BODY);
+    LoadAnimationFrames(prefix + "snake_corner", skinDir, SNAKE_ANIM_FRAMES_BODY);
+    LoadAnimationFrames(prefix + "snake_tail",   skinDir, SNAKE_ANIM_FRAMES_BODY);
+    LoadAnimationFrames(prefix + "snake_head",   skinDir, SNAKE_ANIM_FRAMES_HEAD); // đầu có số khung riêng (4)
 }
 
 void AssetManager::LoadAnimationFrames(const std::string& name, const std::string& dir, int frameCount) {
-    // Lưu ý: "name" giờ đã có sẵn tiền tố skin (vd "neon_snake_head"), nhưng tên
-    // THƯ MỤC CON và TÊN FILE bên trong vẫn phải theo đúng chuẩn CŨ, không có tiền tố
-    // skin - vì skin đã được tách ra thành 1 cấp thư mục cha riêng (skinDir) rồi.
-    // Vậy cần tách phần tên gốc (bỏ tiền tố skin) để ghép đúng đường dẫn thư mục/file.
-    // Cách đơn giản nhất: tìm dấu "_" đầu tiên để tách "neon" ra khỏi "snake_head".
+    // "name" đã có sẵn tiền tố skin (vd "neon_snake_head"), nhưng tên THƯ MỤC CON và
+    // TÊN FILE bên trong vẫn theo đúng chuẩn cũ, không có tiền tố skin - vì skin đã
+    // được tách thành 1 cấp thư mục cha riêng (skinDir) rồi. Cần tách phần tên gốc
+    // (bỏ tiền tố skin) để ghép đúng đường dẫn thư mục/file.
     size_t underscorePos = name.find('_');
     std::string rawName = (underscorePos != std::string::npos) ? name.substr(underscorePos + 1) : name;
     // rawName giờ là "snake_head" (bỏ "neon_" ở đầu)
 
     for (int frame = 0; frame < frameCount; frame++) {
-        std::string key = name + "_" + std::to_string(frame); // vd "neon_snake_head_0" - dùng làm KEY lưu trong bộ nhớ
+        std::string key = name + "_" + std::to_string(frame); // vd "neon_snake_head_0" - KEY lưu trong bộ nhớ
         std::string path = dir + rawName + "_animation/" + rawName + "_" + std::to_string(frame) + ".png";
         LoadTextureChecked(key, path);
     }
