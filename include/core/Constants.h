@@ -17,10 +17,18 @@ constexpr int DEFAULT_CELL_SIZE = 64; // kích thước ô lưới (pixel) để
 // ---------- Animation rắn (flipbook) ----------
 // Vị trí các đốt luôn SNAP đúng ô lưới (không nội suy nữa) - cảm giác "di chuyển mượt"
 // đến hoàn toàn từ việc đổi khung hình theo thời gian thực (giống băng chuyền).
+<<<<<<< HEAD
 constexpr float SNAKE_ANIM_FPS = 8.0f;                 // khung hình/giây - dùng chung cho MỌI loại đốt (đầu, thân thẳng, đuôi, góc cua)
 constexpr int   SNAKE_ANIM_FRAMES_BODY = 1;            // số khung - dùng chung cho đầu / thân thẳng / đuôi / góc cua
+=======
+constexpr float SNAKE_ANIM_FPS_HEAD = 4.0f;  // đầu: 4 khung hình/giây
+constexpr float SNAKE_ANIM_FPS_BODY = 6.0f;  // thân/đuôi/góc cua: giữ nguyên tốc độ cũ (chỉnh nếu cần)
+
+constexpr int   SNAKE_ANIM_FRAMES_BODY = 6;            // số khung - dùng chung cho đầu / thân thẳng / đuôi / góc cua
+>>>>>>> 4ff318258e408e1c4738609d3c5bd10dfcb46d9c
                                                         // (mỗi loại nằm trong 1 thư mục con riêng: assets/textures/<ten>/<ten>_0.png..<ten>_7.png,
                                                         // ví dụ assets/textures/snake_body/snake_body_0.png..snake_body_7.png).
+constexpr int SNAKE_ANIM_FRAMES_HEAD = 4;  // đầu rắn: 4 khung hình
 constexpr float SNAKE_ANIM_PHASE_PER_SEGMENT = 0.5f;   // độ lệch pha (đơn vị: khung hình) giữa 2 đốt liền kề theo chỉ số i,
                                                         // tạo hiệu ứng hoạ văn "chảy" dọc thân từ đầu xuống đuôi. Có thể chỉnh để
                                                         // đổi tốc độ "chảy" của hiệu ứng mà không đụng tới SNAKE_ANIM_FPS.
