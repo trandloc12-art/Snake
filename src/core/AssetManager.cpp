@@ -27,6 +27,21 @@ void AssetManager::LoadAll() {
     LoadTextureChecked("wall",               texturesDir + "wall.png");
     LoadTextureChecked("food",               texturesDir + "food.png");
     LoadTextureChecked("playing_background", texturesDir + "playing_background.png");
+
+    std::string uiDir = texturesDir + "ui/";
+    LoadTextureChecked("btn_choi_game_idle",     uiDir + "btn_choi_game_idle.png",     false);
+    LoadTextureChecked("btn_choi_game_selected", uiDir + "btn_choi_game_selected.png", false);
+    LoadTextureChecked("btn_tuy_chon_idle",      uiDir + "btn_tuy_chon_idle.png",      false);
+    LoadTextureChecked("btn_tuy_chon_selected",  uiDir + "btn_tuy_chon_selected.png",  false);
+    LoadTextureChecked("btn_thoat_idle",         uiDir + "btn_thoat_idle.png",         false);
+    LoadTextureChecked("btn_thoat_selected",     uiDir + "btn_thoat_selected.png",     false);
+    LoadTextureChecked("btn_choi_lai_idle",      uiDir + "btn_choi_lai_idle.png",      false);
+    LoadTextureChecked("btn_choi_lai_selected",  uiDir + "btn_choi_lai_selected.png",  false);
+    LoadTextureChecked("btn_ve_menu_idle",       uiDir + "btn_ve_menu_idle.png",       false);
+    LoadTextureChecked("btn_ve_menu_selected",   uiDir + "btn_ve_menu_selected.png",   false);
+    LoadTextureChecked("logo_snake",             uiDir + "logo_snake.png",             false);
+    LoadTextureChecked("title_game_over",        uiDir + "title_game_over.png",        false);
+    LoadTextureChecked("sprite_dead_snake",      uiDir + "sprite_dead_snake.png",       false);
 }
 
 void AssetManager::LoadAnimationFrames(const std::string& name, const std::string& dir, int frameCount) {
