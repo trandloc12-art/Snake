@@ -16,9 +16,9 @@ public:
 
 private:
     Game& game; // dùng để gọi game.ChangeState(...) khi người chơi chọn 1 mục
-    int selectedOption = 0; // 0 = Play, 1 = Editor, 2 = Quit
+    int selectedOption = 0; // 0 = Play, 1 = Chon Skin, 2 = Editor, 3 = Quit
 
-    std::array<Button, 3> buttons; // 0: Choi, 1: Sua man, 2: Thoat
+    std::array<Button, 4> buttons; // ĐỔI: 3 -> 4. 0: Choi, 1: Chon Skin, 2: Sua man, 3: Thoat
     const Texture2D* titleTexture = nullptr;
     Vector2 titlePosition{};
 };

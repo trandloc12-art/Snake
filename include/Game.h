@@ -6,6 +6,7 @@
 #include "states/LevelSelectState.h"
 #include "states/LevelEditorState.h"
 #include "states/PlayingState.h"
+#include "states/SkinSelectState.h"
 #include "states/GameOverState.h"
 #include <string>
 
@@ -27,6 +28,9 @@ public:
     /// PlayingState cần biết để load đúng màn).
     void SetSelectedLevelPath(const std::string& path) { selectedLevelPath = path; }
     const std::string& GetSelectedLevelPath() const { return selectedLevelPath; }
+
+    void SetSelectedSkin(const std::string& skin) { selectedSkin = skin; }
+    const std::string& GetSelectedSkin() const { return selectedSkin; }
 
     void SetLastScore(int score) { lastScore = score; }
     int GetLastScore() const { return lastScore; }
@@ -54,10 +58,12 @@ private:
     LevelSelectState levelSelectState;
     LevelEditorState levelEditorState;
     PlayingState playingState;
+    SkinSelectState skinSelectState;
     GameOverState gameOverState;
 
     bool quitRequested = false;// true nếu state hiện tại muốn thoát game (ví dụ: MenuState khi bấm ESC)
 
     std::string selectedLevelPath;
+    std::string selectedSkin = DEFAULT_SNAKE_SKIN;
     int lastScore = 0;
 };

@@ -9,6 +9,7 @@ Game::Game()
       levelSelectState(*this),
       levelEditorState(*this),
       playingState(*this, assets),
+      skinSelectState(*this),
       gameOverState(*this),
       selectedLevelPath(DEFAULT_LEVEL_FILE)
 {
@@ -64,6 +65,10 @@ void Game::Update() {
             if (justEntered) playingState.Init();
             playingState.Update();
             break;
+        case GameState::SKIN_SELECT:
+            if (justEntered) skinSelectState.Init();
+            skinSelectState.Update();
+            break;
         case GameState::GAME_OVER:
             if (justEntered) gameOverState.Init();
             gameOverState.Update();
@@ -85,6 +90,7 @@ void Game::InitCurrentState() {
         case GameState::LEVEL_SELECT: levelSelectState.Init();  break;
         case GameState::LEVEL_EDITOR: levelEditorState.Init();  break;
         case GameState::PLAYING:      playingState.Init();      break;
+        case GameState::SKIN_SELECT: skinSelectState.Init(); break;
         case GameState::GAME_OVER:    gameOverState.Init();     break;
     }
 }
@@ -95,6 +101,7 @@ void Game::Draw() {
         case GameState::LEVEL_SELECT: levelSelectState.Draw(); break;
         case GameState::LEVEL_EDITOR: levelEditorState.Draw(); break;
         case GameState::PLAYING:      playingState.Draw(); break;
+        case GameState::SKIN_SELECT: skinSelectState.Draw(); break;
         case GameState::GAME_OVER:    gameOverState.Draw(); break;
     }
 }

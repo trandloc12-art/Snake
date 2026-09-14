@@ -11,18 +11,9 @@ void AssetManager::LoadAll() {
     std::string texturesDir   = TEXTURES_DIRECTORY;
     std::string animationsDir = ANIMATIONS_DIRECTORY;
 
-    // Đầu / thân thẳng / đuôi / góc cua: mỗi loại nằm trong 1 THƯ MỤC CON riêng bên trong
-    // ANIMATIONS_DIRECTORY, tên thư mục = "<name>_animation" (vd assets/animations/
-    // snake_head_animation/snake_head_0.png .. snake_head_7.png) - CHỈ thư mục có hậu tố
-    // "_animation", tên FILE bên trong vẫn giữ nguyên như cũ (không có hậu tố này).
-    // Mỗi bộ gồm SNAKE_ANIM_FRAMES_BODY khung animation flipbook. Lưu ý: tên của thân
-    // thẳng là "snake_body" (không phải "snake_body_straight"), góc cua là "snake_corner"
-    // (không phải "snake_body_corner").
-    LoadAnimationFrames("snake_head",   animationsDir, SNAKE_ANIM_FRAMES_BODY);
-    LoadAnimationFrames("snake_body",   animationsDir, SNAKE_ANIM_FRAMES_BODY);
-    LoadAnimationFrames("snake_tail",   animationsDir, SNAKE_ANIM_FRAMES_BODY);
-    LoadAnimationFrames("snake_corner", animationsDir, SNAKE_ANIM_FRAMES_BODY);
-
+    for (int s = 0; s < SNAKE_SKIN_COUNT; s++) {
+        LoadSkinAnimations(SNAKE_SKINS[s], animationsDir);
+    }
     // Các file không thuộc rắn: vẫn nằm trực tiếp trong TEXTURES_DIRECTORY như cũ.
     LoadTextureChecked("wall",               texturesDir + "wall.png");
     LoadTextureChecked("food",               texturesDir + "food.png");
@@ -39,15 +30,39 @@ void AssetManager::LoadAll() {
     LoadTextureChecked("btn_choi_lai_selected",  uiDir + "btn_choi_lai_selected.png",  false);
     LoadTextureChecked("btn_ve_menu_idle",       uiDir + "btn_ve_menu_idle.png",       false);
     LoadTextureChecked("btn_ve_menu_selected",   uiDir + "btn_ve_menu_selected.png",   false);
+    LoadTextureChecked("btn_chon_skin_idle",     uiDir + "btn_chon_skin_idle.png",     false);
+    LoadTextureChecked("btn_chon_skin_selected", uiDir + "btn_chon_skin_selected.png", false);
     LoadTextureChecked("logo_snake",             uiDir + "logo_snake.png",             false);
     LoadTextureChecked("title_game_over",        uiDir + "title_game_over.png",        false);
     LoadTextureChecked("sprite_dead_snake",      uiDir + "sprite_dead_snake.png",       false);
+    
+}
+
+void AssetManager::LoadSkinAnimations(const std::string& skinName, const std::string& animationsDir) {
+    // vd skinName = "neon" -> skinDir = "assets/animations/neon/"
+    //              prefix  = "neon_"  -> texture key "neon_snake_head_0", v.v.
+    std::string skinDir = "assets/animations/neon/";
+    std::string prefix  =  "neon_";
+
+    LoadAnimationFrames( "neon_snake_body",   skinDir, SNAKE_ANIM_FRAMES_BODY);
+    LoadAnimationFrames( "neon_snake_corner",   skinDir, SNAKE_ANIM_FRAMES_BODY);
+    LoadAnimationFrames( "neon_snake_tail",   skinDir, SNAKE_ANIM_FRAMES_BODY);
+    LoadAnimationFrames( "neon_snake_head", skinDir, SNAKE_ANIM_FRAMES_BODY);
 }
 
 void AssetManager::LoadAnimationFrames(const std::string& name, const std::string& dir, int frameCount) {
+    // Lưu ý: "name" giờ đã có sẵn tiền tố skin (vd "neon_snake_head"), nhưng tên
+    // THƯ MỤC CON và TÊN FILE bên trong vẫn phải theo đúng chuẩn CŨ, không có tiền tố
+    // skin - vì skin đã được tách ra thành 1 cấp thư mục cha riêng (skinDir) rồi.
+    // Vậy cần tách phần tên gốc (bỏ tiền tố skin) để ghép đúng đường dẫn thư mục/file.
+    // Cách đơn giản nhất: tìm dấu "_" đầu tiên để tách "neon" ra khỏi "snake_head".
+    size_t underscorePos = name.find('_');
+    std::string rawName = (underscorePos != std::string::npos) ? name.substr(underscorePos + 1) : name;
+    // rawName giờ là "snake_head" (bỏ "neon_" ở đầu)
+
     for (int frame = 0; frame < frameCount; frame++) {
-        std::string key = name + "_" + std::to_string(frame);
-        std::string path = dir + name + "_animation/" + key + ".png";
+        std::string key = name + "_" + std::to_string(frame); // vd "neon_snake_head_0" - dùng làm KEY lưu trong bộ nhớ
+        std::string path = dir + rawName + "_animation/" + rawName + "_" + std::to_string(frame) + ".png";
         LoadTextureChecked(key, path);
     }
 }

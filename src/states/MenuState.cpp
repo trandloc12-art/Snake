@@ -13,6 +13,8 @@ void MenuState::Init() {
 
     const Texture2D& choiIdle      = assets.GetTexture("btn_choi_game_idle");
     const Texture2D& choiSelected  = assets.GetTexture("btn_choi_game_selected");
+    const Texture2D& skinIdle      = assets.GetTexture("btn_chon_skin_idle");      // MỚI
+    const Texture2D& skinSelected  = assets.GetTexture("btn_chon_skin_selected");  // MỚI
     const Texture2D& tuyIdle       = assets.GetTexture("btn_tuy_chon_idle");
     const Texture2D& tuySelected   = assets.GetTexture("btn_tuy_chon_selected");
     const Texture2D& thoatIdle     = assets.GetTexture("btn_thoat_idle");
@@ -24,14 +26,16 @@ void MenuState::Init() {
     titlePosition = { screenW / 2.0f - titleTexture->width / 2.0f, 100.0f };
 
     float spacing = 20.0f;
-    float startY = screenH / 2.0f - 20.0f; // căn quanh giữa màn hình, dưới logo
+    float startY = screenH / 2.0f - 70.0f;
 
     float y = startY;
     buttons[0].Init(choiIdle, choiSelected,   { screenW / 2.0f - choiIdle.width  / 2.0f, y });
     y += choiIdle.height + spacing;
-    buttons[1].Init(tuyIdle, tuySelected,     { screenW / 2.0f - tuyIdle.width   / 2.0f, y });
+    buttons[1].Init(skinIdle, skinSelected,   { screenW / 2.0f - skinIdle.width  / 2.0f, y }); // MỚI
+    y += skinIdle.height + spacing;
+    buttons[2].Init(tuyIdle, tuySelected,     { screenW / 2.0f - tuyIdle.width   / 2.0f, y });
     y += tuyIdle.height + spacing;
-    buttons[2].Init(thoatIdle, thoatSelected, { screenW / 2.0f - thoatIdle.width / 2.0f, y });
+    buttons[3].Init(thoatIdle, thoatSelected, { screenW / 2.0f - thoatIdle.width / 2.0f, y });
 }
 
 // MenuState.cpp — Update(), thêm dòng xử lý ESC
@@ -41,8 +45,8 @@ void MenuState::Update() {
         return;
     }
 
-    if (IsKeyPressed(KEY_DOWN)) selectedOption = (selectedOption + 1) % 3;
-    if (IsKeyPressed(KEY_UP))   selectedOption = (selectedOption + 2) % 3;
+    if (IsKeyPressed(KEY_DOWN)) selectedOption = (selectedOption + 1) % 4;
+    if (IsKeyPressed(KEY_UP))   selectedOption = (selectedOption + 3) % 4;
     
     // Chuột: rê tới nút nào thì đồng bộ selectedOption theo nút đó,
     // để bàn phím và chuột luôn "hiểu" cùng 1 lựa chọn hiện tại.
@@ -58,8 +62,9 @@ void MenuState::Update() {
     if (confirmed) {
         switch (selectedOption) {
             case 0: game.ChangeState(GameState::LEVEL_SELECT); break;
-            case 1: game.ChangeState(GameState::LEVEL_EDITOR); break;
-            case 2: game.RequestQuit(); break;
+            case 1: game.ChangeState(GameState::SKIN_SELECT);  break; // MỚI
+            case 2: game.ChangeState(GameState::LEVEL_EDITOR); break;
+            case 3: game.RequestQuit(); break;
         }
     }
 }

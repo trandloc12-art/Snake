@@ -80,6 +80,10 @@ namespace {
 
 SnakeRenderer::SnakeRenderer(const AssetManager& assets) : assets(assets) {}
 
+void SnakeRenderer::SetSkin(const std::string& skinName) {
+    skinPrefix = skinName + "_";
+}
+
 void SnakeRenderer::Draw(const Snake& snake, int cellSize, float moveAlpha) const {
     // moveAlpha KHÔNG dùng để nội suy vị trí - mọi đốt snap đứng yên đúng ô lưới hiện
     // tại (segments[i] * cellSize). Quyết định giữ snap-grid (không nội suy) vì nội suy
@@ -121,14 +125,14 @@ void SnakeRenderer::Draw(const Snake& snake, int cellSize, float moveAlpha) cons
             rotation = HeadRotation(dir);
 
             int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS);
-            tex = &assets.GetTexture("snake_head_" + std::to_string(frame));
+            tex = &assets.GetTexture(skinPrefix + "snake_head_" + std::to_string(frame));
 
         } else if (i == lastIndex) {
             Direction dir = DirectionFromTo(segments[lastIndex - 1], segments[lastIndex]);
             rotation = TailRotation(dir);
 
             int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS);
-            tex = &assets.GetTexture("snake_tail_" + std::to_string(frame));
+            tex = &assets.GetTexture(skinPrefix + "snake_tail_" + std::to_string(frame));
 
         } else {
             Direction dirIn  = DirectionFromTo(segments[i], segments[i - 1]);
@@ -138,7 +142,7 @@ void SnakeRenderer::Draw(const Snake& snake, int cellSize, float moveAlpha) cons
                 rotation = StraightRotation(dirIn);
 
                 int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS);
-                tex = &assets.GetTexture("snake_body_" + std::to_string(frame));
+                tex = &assets.GetTexture(skinPrefix + "snake_body_" + std::to_string(frame));
             } else {
                 rotation = CornerRotation(dirIn, dirOut);
 
@@ -146,7 +150,7 @@ void SnakeRenderer::Draw(const Snake& snake, int cellSize, float moveAlpha) cons
                 // (asset thật nằm trong thư mục snake_corner/, tên file
                 // snake_corner_0.png..snake_corner_7.png).
                 int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS);
-                tex = &assets.GetTexture("snake_corner_" + std::to_string(frame));
+                tex = &assets.GetTexture(skinPrefix + "snake_corner_" + std::to_string(frame));
             }
         }
 

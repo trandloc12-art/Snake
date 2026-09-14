@@ -6,5 +6,6 @@ enum class GameState {
     LEVEL_SELECT,
     LEVEL_EDITOR,
     PLAYING,
+    SKIN_SELECT,
     GAME_OVER
 };

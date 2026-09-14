@@ -38,5 +38,9 @@ private:
     /// Dùng cho đầu/thân/đuôi/góc cua của rắn - mỗi loại hiện có SNAKE_ANIM_FRAMES_BODY khung.
     void LoadAnimationFrames(const std::string& name, const std::string& dir, int frameCount);
 
+    /// MỚI: load 4 bộ animation (head/body/tail/corner) của 1 skin, texture key sẽ có
+    /// tiền tố tên skin (vd "neon_snake_head_0") để phân biệt với skin khác.
+    void LoadSkinAnimations(const std::string& skinName, const std::string& animationsDir);
+
     std::unordered_map<std::string, Texture2D> textures;
 };

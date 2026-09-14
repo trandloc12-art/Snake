@@ -35,6 +35,8 @@ void PlayingState::Init() {
 
     SpawnFood();
 
+    snakeRenderer.SetSkin(game.GetSelectedSkin());
+
     // MỚI: mỗi lần vào lại Playing (chơi mới hoặc chơi lại) đều đếm ngược từ đầu
     countdownTimer = 3.0f;
     isCountingDown = true;

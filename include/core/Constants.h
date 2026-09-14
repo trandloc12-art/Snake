@@ -18,7 +18,7 @@ constexpr int DEFAULT_CELL_SIZE = 64; // kích thước ô lưới (pixel) để
 // Vị trí các đốt luôn SNAP đúng ô lưới (không nội suy nữa) - cảm giác "di chuyển mượt"
 // đến hoàn toàn từ việc đổi khung hình theo thời gian thực (giống băng chuyền).
 constexpr float SNAKE_ANIM_FPS = 8.0f;                 // khung hình/giây - dùng chung cho MỌI loại đốt (đầu, thân thẳng, đuôi, góc cua)
-constexpr int   SNAKE_ANIM_FRAMES_BODY = 7;            // số khung - dùng chung cho đầu / thân thẳng / đuôi / góc cua
+constexpr int   SNAKE_ANIM_FRAMES_BODY = 1;            // số khung - dùng chung cho đầu / thân thẳng / đuôi / góc cua
                                                         // (mỗi loại nằm trong 1 thư mục con riêng: assets/textures/<ten>/<ten>_0.png..<ten>_7.png,
                                                         // ví dụ assets/textures/snake_body/snake_body_0.png..snake_body_7.png).
 constexpr float SNAKE_ANIM_PHASE_PER_SEGMENT = 0.5f;   // độ lệch pha (đơn vị: khung hình) giữa 2 đốt liền kề theo chỉ số i,
@@ -56,3 +56,12 @@ constexpr const char* TEXTURES_DIRECTORY = "assets/textures/";
 constexpr const char* ANIMATIONS_DIRECTORY = "assets/animations/";
 
 constexpr const char* DEFAULT_LEVEL_FILE = "level1.txt"; // chỉ tên file, LEVELS_DIRECTORY đã có path đầy đủ
+
+// ---------- Skin rắn ----------
+// ANIMATIONS_DIRECTORY (vd assets/animations/classic/, assets/animations/neon/).
+// Thêm skin mới sau này: thêm 1 dòng vào mảng này + tạo đủ thư mục ảnh tương ứng,
+// không cần sửa gì thêm ở AssetManager hay SkinSelectState.
+constexpr const char* SNAKE_SKINS[] = { "classic", "neon" };
+constexpr int SNAKE_SKIN_COUNT = 2;
+
+constexpr const char* DEFAULT_SNAKE_SKIN = "classic";

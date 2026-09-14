@@ -8,8 +8,11 @@ class SnakeRenderer {
 public:
     explicit SnakeRenderer(const AssetManager& assets);
 
+    void SetSkin(const std::string& skinName);
+
     void Draw(const Snake& snake, int cellSize, float moveAlpha) const;
 
 private:
     const AssetManager& assets; // chỉ giữ tham chiếu, không sở hữu texture
+    std::string skinPrefix = "classic_";
 };
