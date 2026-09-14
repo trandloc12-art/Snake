@@ -30,6 +30,13 @@ public:
     /// Lưu lại trạng thái trước khi Move() để có thể Undo (quay lại bước trước).
     const std::deque<Vector2>& GetPrevSegments() const { return prevSegments; }
 
+    /// Thời điểm (GetTime()) mỗi đốt được sinh ra, cùng thứ tự và cùng kích thước
+    /// với GetSegments() (segmentSpawnTimes[i] tương ứng segments[i]).
+    /// Dùng bởi SnakeRenderer để tính frame animation ổn định qua các bước di
+    /// chuyển — vì index của 1 đốt vật lý trong "segments" bị dịch lên mỗi khi
+    /// rắn đi (push_front đầu mới), animation không thể gắn theo index, phải
+    /// gắn theo thời điểm sinh ra của chính đốt đó.
+    const std::deque<double>& GetSegmentSpawnTimes() const { return segmentSpawnTimes; }
 
     /// Hướng di chuyển hiện tại — dùng bởi SnakeRenderer để xoay đầu rắn
     /// đúng hướng khi thân rắn chỉ có 1 đốt duy nhất (không có đốt kế để tính hướng).
@@ -37,6 +44,7 @@ public:
 
 private:
     std::deque<Vector2> segments; // segments.front() = đầu, segments.back() = đuôi
-    std::deque<Vector2> prevSegments; // MỚI: vị trí trước lần Move() gần nhất, dùng để nội suy khi vẽ
+    std::deque<Vector2> prevSegments; // vị trí trước lần Move() gần nhất, dùng để nội suy khi vẽ
+    std::deque<double>  segmentSpawnTimes; // song song 1-1 với segments — xem GetSegmentSpawnTimes()
     Direction currentDirection = Direction::RIGHT;
 };

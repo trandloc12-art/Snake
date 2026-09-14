@@ -2,7 +2,8 @@
 #include "Snake/SnakeRenderer.h"
 #include "core/Constants.h"
 #include <cassert>
-#include <algorithm>
+#include <cmath>
+#include <string>
 
 namespace {
     Direction DirectionFromTo(Vector2 from, Vector2 to) {
@@ -59,96 +60,96 @@ namespace {
         if (hasRight && hasUp)    return 180.0f;
         return 270.0f;
     }
+
+    // Chọn khung hình animation hiện tại cho 1 đốt, dựa theo:
+    // - thời gian thực (time, giây) trừ đi thời điểm đốt đó được SINH RA (spawnTime)
+    // - fps: tốc độ chạy khung hình
+    // Đốt càng gần ĐẦU thì spawnTime càng gần "now" -> (time - spawnTime) nhỏ -> frame
+    // sớm hơn; đốt gần ĐUÔI đã "sống" lâu hơn -> frame trễ hơn -> tạo cảm giác hoạ văn
+    // "chảy" dọc thân từ đầu xuống đuôi, giống hiệu ứng cũ nhưng KHÔNG còn phụ thuộc vào
+    // segmentIndex (vốn bị dịch +1 mỗi khi rắn di chuyển do push_front đầu mới) — nên
+    // không còn bị giật/lệch phase giữa các bước đi.
+    int ComputeAnimFrame(double time, double spawnTime, int frameCount, float fps) {
+        float framePos = static_cast<float>((time - spawnTime) * fps);
+        int frame = static_cast<int>(std::floor(framePos));
+        frame %= frameCount;
+        if (frame < 0) frame += frameCount; // % trong C++ có thể trả âm, chuẩn hoá lại về [0, frameCount)
+        return frame;
+    }
 }
 
 SnakeRenderer::SnakeRenderer(const AssetManager& assets) : assets(assets) {}
 
 void SnakeRenderer::Draw(const Snake& snake, int cellSize, float moveAlpha) const {
-    const auto& segments = snake.GetSegments();
-    const auto& prevSegments = snake.GetPrevSegments();
-    float alpha = std::clamp(moveAlpha, 0.0f, 1.0f);
+    // moveAlpha KHÔNG dùng để nội suy vị trí - mọi đốt snap đứng yên đúng ô lưới hiện
+    // tại (segments[i] * cellSize). Quyết định giữ snap-grid (không nội suy) vì nội suy
+    // vị trí gây gãy khớp hình học ở góc cua (corner sprite chỉ đúng hình tại thời điểm
+    // bẻ góc hoàn tất, không có texture nào khớp giữa chừng). Cảm giác "di chuyển mượt"
+    // đến hoàn toàn từ animation flipbook chạy theo đồng hồ thực. Giữ tham số này lại để
+    // không đổi chữ ký hàm Draw().
+    (void)moveAlpha;
 
+    const auto& segments = snake.GetSegments();
+    const auto& spawnTimes = snake.GetSegmentSpawnTimes();
+    if (segments.empty()) return;
+
+    // segments và spawnTimes phải luôn cùng kích thước (xem Snake::Move/Init/InitFromLevel).
+    assert(segments.size() == spawnTimes.size());
+
+    double time = GetTime();
     size_t lastIndex = segments.size() - 1;
 
-    for (size_t i = 0; i < segments.size(); i++) {
-        const Texture2D* tex = nullptr;
-        float rotation = 0.0f;
-        
-        bool interpolate = false;
-
-        if (i == 0) {
-            tex = &assets.GetTexture("snake_head");
-            interpolate = true;
-
-            if (segments.size() >= 2) {
-                Direction dir = DirectionFromTo(segments[1], segments[0]);
-                rotation = HeadRotation(dir);
-            } else {
-                rotation = HeadRotation(snake.GetCurrentDirection());
-            }
-
-        } else if (i == lastIndex) {
-            tex = &assets.GetTexture("snake_tail");
-            Direction dir = DirectionFromTo(segments[lastIndex - 1], segments[lastIndex]);
-            rotation = TailRotation(dir);
-
-            if (segments.size() >= 3) {
-                // Trạng thái đốt gần đuôi ở tick HIỆN TẠI
-                Direction dirIn  = DirectionFromTo(segments[lastIndex - 1], segments[lastIndex - 2]);
-                Direction dirOut = DirectionFromTo(segments[lastIndex - 1], segments[lastIndex]);
-                bool nearTailIsCorner = !IsStraight(dirIn, dirOut);
-
-                // Trạng thái đốt gần đuôi ở tick TRƯỚC
-                bool nearTailWasCorner = false;
-                if (prevSegments.size() > lastIndex) {
-                    Direction dirInPrev  = DirectionFromTo(prevSegments[lastIndex - 1], prevSegments[lastIndex - 2]);
-                    Direction dirOutPrev = DirectionFromTo(prevSegments[lastIndex - 1], prevSegments[lastIndex]);
-                    nearTailWasCorner = !IsStraight(dirInPrev, dirOutPrev);
-                }
-
-                // Chỉ tắt nội suy đúng lúc chuyển tiếp: trước là rẽ, giờ đã thẳng
-                bool justStraightened = nearTailWasCorner && !nearTailIsCorner;
-                interpolate = !justStraightened;
-            } else {
-                interpolate = IsStraight(dir, snake.GetCurrentDirection());
-            }
-        } else {
-            Direction dirIn  = DirectionFromTo(segments[i], segments[i - 1]);
-            Direction dirOut = DirectionFromTo(segments[i], segments[i + 1]);
-            bool isCorner = !IsStraight(dirIn, dirOut);
-
-            // Trạng thái đốt này ở tick TRƯỚC (nếu dữ liệu hợp lệ, không grow lệch index)
-            bool wasCorner = false;
-            if (prevSegments.size() > i + 1) {
-                Direction dirInPrev  = DirectionFromTo(prevSegments[i], prevSegments[i - 1]);
-                Direction dirOutPrev = DirectionFromTo(prevSegments[i], prevSegments[i + 1]);
-                wasCorner = !IsStraight(dirInPrev, dirOutPrev);
-            }
-
-            // Khúc cua VỪA xuất hiện ở đốt này (trước thẳng, giờ rẽ) -> tắt nội suy đúng lúc này
-            bool justCornered = !wasCorner && isCorner;
-            interpolate = !justCornered;
-
-            tex = isCorner ? &assets.GetTexture("snake_body_corner")
-                            : &assets.GetTexture("snake_body_straight");
-            rotation = isCorner ? CornerRotation(dirIn, dirOut) : StraightRotation(dirIn);
-        }
-
-        Vector2 pos;
-        if (interpolate) {
-            Vector2 prev = (i < prevSegments.size()) ? prevSegments[i] : segments[i];
-            float interpX = prev.x + (segments[i].x - prev.x) * alpha;
-            float interpY = prev.y + (segments[i].y - prev.y) * alpha;
-            pos = { interpX * cellSize, interpY * cellSize };
-        } else {
-            pos = { segments[i].x * cellSize, segments[i].y * cellSize };
-        }
-
+    auto drawTile = [&](Vector2 pos, const Texture2D& t, float rot, Color tint) {
         Rectangle source = { 0, 0, (float)TILE_SOURCE_SIZE, (float)TILE_SOURCE_SIZE };
         Rectangle dest = { pos.x + cellSize / 2.0f, pos.y + cellSize / 2.0f,
                             (float)cellSize, (float)cellSize };
         Vector2 origin = { cellSize / 2.0f, cellSize / 2.0f };
+        DrawTexturePro(t, source, dest, origin, rot, tint);
+    };
 
-        DrawTexturePro(*tex, source, dest, origin, rotation, WHITE);
+    for (size_t i = 0; i < segments.size(); i++) {
+        // Vị trí: luôn snap đúng ô lưới hiện tại, không nội suy prevSegments -> segments.
+        Vector2 pos = { segments[i].x * cellSize, segments[i].y * cellSize };
+
+        const Texture2D* tex = nullptr;
+        float rotation = 0.0f;
+
+        if (i == 0) {
+            Direction dir = (segments.size() >= 2)
+                ? DirectionFromTo(segments[1], segments[0])
+                : snake.GetCurrentDirection();
+            rotation = HeadRotation(dir);
+
+            int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS);
+            tex = &assets.GetTexture("snake_head_" + std::to_string(frame));
+
+        } else if (i == lastIndex) {
+            Direction dir = DirectionFromTo(segments[lastIndex - 1], segments[lastIndex]);
+            rotation = TailRotation(dir);
+
+            int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS);
+            tex = &assets.GetTexture("snake_tail_" + std::to_string(frame));
+
+        } else {
+            Direction dirIn  = DirectionFromTo(segments[i], segments[i - 1]);
+            Direction dirOut = DirectionFromTo(segments[i], segments[i + 1]);
+
+            if (IsStraight(dirIn, dirOut)) {
+                rotation = StraightRotation(dirIn);
+
+                int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS);
+                tex = &assets.GetTexture("snake_body_" + std::to_string(frame));
+            } else {
+                rotation = CornerRotation(dirIn, dirOut);
+
+                // Góc cua dùng chung kiến trúc animation 8 khung như thân thẳng/đầu/đuôi
+                // (asset thật nằm trong thư mục snake_corner/, tên file
+                // snake_corner_0.png..snake_corner_7.png).
+                int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS);
+                tex = &assets.GetTexture("snake_corner_" + std::to_string(frame));
+            }
+        }
+
+        drawTile(pos, *tex, rotation, WHITE);
     }
 }

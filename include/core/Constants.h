@@ -14,6 +14,17 @@ constexpr const char* WINDOW_TITLE = "Snake Game";
 constexpr int TILE_SOURCE_SIZE = 64;
 constexpr int DEFAULT_CELL_SIZE = 64; // kích thước ô lưới (pixel) để vẽ texture, có thể scale lên khi window to
 
+// ---------- Animation rắn (flipbook) ----------
+// Vị trí các đốt luôn SNAP đúng ô lưới (không nội suy nữa) - cảm giác "di chuyển mượt"
+// đến hoàn toàn từ việc đổi khung hình theo thời gian thực (giống băng chuyền).
+constexpr float SNAKE_ANIM_FPS = 8.0f;                 // khung hình/giây - dùng chung cho MỌI loại đốt (đầu, thân thẳng, đuôi, góc cua)
+constexpr int   SNAKE_ANIM_FRAMES_BODY = 7;            // số khung - dùng chung cho đầu / thân thẳng / đuôi / góc cua
+                                                        // (mỗi loại nằm trong 1 thư mục con riêng: assets/textures/<ten>/<ten>_0.png..<ten>_7.png,
+                                                        // ví dụ assets/textures/snake_body/snake_body_0.png..snake_body_7.png).
+constexpr float SNAKE_ANIM_PHASE_PER_SEGMENT = 0.5f;   // độ lệch pha (đơn vị: khung hình) giữa 2 đốt liền kề theo chỉ số i,
+                                                        // tạo hiệu ứng hoạ văn "chảy" dọc thân từ đầu xuống đuôi. Có thể chỉnh để
+                                                        // đổi tốc độ "chảy" của hiệu ứng mà không đụng tới SNAKE_ANIM_FPS.
+
 // ---------- Gameplay: Rắn ----------
 constexpr int DEFAULT_SNAKE_LENGTH = 3;
 constexpr float DEFAULT_MOVE_INTERVAL = 0.2f; // thời gian giữa các bước di chuyển
@@ -39,5 +50,9 @@ constexpr int MIN_LEVEL_HEIGHT = 5;
 // Texture thì KHÔNG cần đổi - vẫn đọc từ build/assets/textures/ vì ảnh không đổi lúc chạy,
 // việc CMake copy sẵn vào build/ là đủ, không cần đọc trực tiếp từ source.
 constexpr const char* TEXTURES_DIRECTORY = "assets/textures/";
+
+// Asset animation (flipbook) của rắn - snake_head/snake_body/snake_tail/snake_corner - nằm
+// riêng ở đây, TÁCH KHỎI TEXTURES_DIRECTORY (nơi vẫn chỉ chứa wall/food/playing_background).
+constexpr const char* ANIMATIONS_DIRECTORY = "assets/animations/";
 
 constexpr const char* DEFAULT_LEVEL_FILE = "level1.txt"; // chỉ tên file, LEVELS_DIRECTORY đã có path đầy đủ

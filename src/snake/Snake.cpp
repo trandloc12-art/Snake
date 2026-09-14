@@ -28,7 +28,10 @@ namespace {
 
 void Snake::Init(int startX, int startY, Direction direction, int initialLength) {
     segments.clear();
+    segmentSpawnTimes.clear(); // MỚI: reset song song với segments
     currentDirection = direction;
+
+    double now = GetTime(); // MỚI: mọi đốt khởi tạo cùng lúc -> cùng spawnTime
 
     for (int i = 0; i < initialLength; i++) {
         int x = startX;
@@ -40,11 +43,14 @@ void Snake::Init(int startX, int startY, Direction direction, int initialLength)
             case Direction::UP:    y += i; break;
         }
         segments.push_back({ (float)x, (float)y });
+        segmentSpawnTimes.push_back(now); // MỚI
     }
 }
 
 void Snake::InitFromLevel(const Level& level) {
     segments.clear();
+    segmentSpawnTimes.clear(); // MỚI
+    double now = GetTime();    // MỚI: toàn bộ rắn dựng từ level coi như "sinh ra" cùng lúc
 
     // Bước 1: quét toàn bộ lưới để tìm ô SNAKE_HEAD.
     int headX = -1, headY = -1;
@@ -62,6 +68,7 @@ void Snake::InitFromLevel(const Level& level) {
     if (headX == -1) return; // không tìm thấy HEAD -> level lỗi, không dựng được rắn
 
     segments.push_back({ (float)headX, (float)headY });
+    segmentSpawnTimes.push_back(now); // MỚI
 
     // Bước 2: lần theo dây từ đầu — mỗi ô SNAKE_LINK_* cho biết đốt kế tiếp nằm ở đâu.
     int currentX = headX;
@@ -102,6 +109,7 @@ void Snake::InitFromLevel(const Level& level) {
 
         StepInDirection(currentX, currentY, foundDir);
         segments.push_back({ (float)currentX, (float)currentY });
+        segmentSpawnTimes.push_back(now); // MỚI
     }
 
     // Hướng di chuyển ban đầu: suy ra từ đầu -> đốt thứ 2 (nếu có từ 2 đốt trở lên)
@@ -128,7 +136,7 @@ void Snake::SetDirection(Direction newDirection) {
 }
 
 void Snake::Move(bool grow) {
-    prevSegments = segments;   // MỚI — chụp lại state trước khi thay đổi, mọi logic bên dưới giữ nguyên
+    prevSegments = segments;   // chụp lại state trước khi thay đổi
 
     Vector2 head = segments.front();
     switch (currentDirection) {
@@ -139,8 +147,15 @@ void Snake::Move(bool grow) {
     }
 
     segments.push_front(head);
+    segmentSpawnTimes.push_front(GetTime()); // MỚI: đốt đầu mới "sinh ra" ngay bây giờ -
+                                              // animation của nó sẽ bắt đầu từ frame 0 và
+                                              // chạy theo đồng hồ riêng, không phụ thuộc
+                                              // vào index trong mảng.
+
     if (!grow) {
         segments.pop_back();
+        segmentSpawnTimes.pop_back(); // MỚI: bắt buộc - giữ 2 deque luôn cùng kích thước
+                                       // và cùng thứ tự 1-1 với segments.
     }
 }
 

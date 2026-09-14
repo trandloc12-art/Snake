@@ -8,14 +8,33 @@ AssetManager::~AssetManager() {
 }
 
 void AssetManager::LoadAll() {
-    std::string dir = TEXTURES_DIRECTORY;
-    LoadTextureChecked("snake_head",          dir + "snake_head.png");
-    LoadTextureChecked("snake_body_straight", dir + "snake_body_straight.png");
-    LoadTextureChecked("snake_body_corner",   dir + "snake_body_corner.png");
-    LoadTextureChecked("snake_tail",          dir + "snake_tail.png");
-    LoadTextureChecked("wall",                dir + "wall.png");
-    LoadTextureChecked("food",                dir + "food.png");
-    LoadTextureChecked("playing_background", dir + "playing_background.png");
+    std::string texturesDir   = TEXTURES_DIRECTORY;
+    std::string animationsDir = ANIMATIONS_DIRECTORY;
+
+    // Đầu / thân thẳng / đuôi / góc cua: mỗi loại nằm trong 1 THƯ MỤC CON riêng bên trong
+    // ANIMATIONS_DIRECTORY, tên thư mục = "<name>_animation" (vd assets/animations/
+    // snake_head_animation/snake_head_0.png .. snake_head_7.png) - CHỈ thư mục có hậu tố
+    // "_animation", tên FILE bên trong vẫn giữ nguyên như cũ (không có hậu tố này).
+    // Mỗi bộ gồm SNAKE_ANIM_FRAMES_BODY khung animation flipbook. Lưu ý: tên của thân
+    // thẳng là "snake_body" (không phải "snake_body_straight"), góc cua là "snake_corner"
+    // (không phải "snake_body_corner").
+    LoadAnimationFrames("snake_head",   animationsDir, SNAKE_ANIM_FRAMES_BODY);
+    LoadAnimationFrames("snake_body",   animationsDir, SNAKE_ANIM_FRAMES_BODY);
+    LoadAnimationFrames("snake_tail",   animationsDir, SNAKE_ANIM_FRAMES_BODY);
+    LoadAnimationFrames("snake_corner", animationsDir, SNAKE_ANIM_FRAMES_BODY);
+
+    // Các file không thuộc rắn: vẫn nằm trực tiếp trong TEXTURES_DIRECTORY như cũ.
+    LoadTextureChecked("wall",               texturesDir + "wall.png");
+    LoadTextureChecked("food",               texturesDir + "food.png");
+    LoadTextureChecked("playing_background", texturesDir + "playing_background.png");
+}
+
+void AssetManager::LoadAnimationFrames(const std::string& name, const std::string& dir, int frameCount) {
+    for (int frame = 0; frame < frameCount; frame++) {
+        std::string key = name + "_" + std::to_string(frame);
+        std::string path = dir + name + "_animation/" + key + ".png";
+        LoadTextureChecked(key, path);
+    }
 }
 
 void AssetManager::LoadTextureChecked(const std::string& name, const std::string& path) {

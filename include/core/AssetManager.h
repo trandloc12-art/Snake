@@ -31,5 +31,12 @@ private:
     /// đồng thời bật lọc ảnh dạng "point" để giữ pixel sắc nét khi scale.
     void LoadTextureChecked(const std::string& name, const std::string& path);
 
+    /// Load 1 bộ khung hình animation (flipbook), nằm trong thư mục con "<name>_animation/"
+    /// (thư mục có hậu tố "_animation", TÊN FILE bên trong thì KHÔNG có hậu tố này):
+    /// "<dir>/<name>_animation/<name>_0.png" đến "<dir>/<name>_animation/<name>_(frameCount-1).png".
+    /// Lưu vào map với key "<name>_<i>" (không có path/đuôi .png).
+    /// Dùng cho đầu/thân/đuôi/góc cua của rắn - mỗi loại hiện có SNAKE_ANIM_FRAMES_BODY khung.
+    void LoadAnimationFrames(const std::string& name, const std::string& dir, int frameCount);
+
     std::unordered_map<std::string, Texture2D> textures;
 };
