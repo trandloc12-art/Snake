@@ -22,6 +22,8 @@ private:
     void SpawnFood();
     bool IsWallAt(int x, int y) const;
     void DrawLevel() const; // MỚI: tách riêng việc vẽ tường ra 1 hàm cho gọn Draw()
+    
+    int GetTargetFoodCount() const;
 
     Game& game;
     const AssetManager& assets; // MỚI: giữ tham chiếu để tự lấy texture wall/food
@@ -35,7 +37,7 @@ private:
     float moveInterval = DEFAULT_MOVE_INTERVAL; // thời gian giữa các bước di chuyển, sẽ giảm dần khi ăn mồi
     int cellSize = DEFAULT_CELL_SIZE; // kích thước ô lưới (pixel) để vẽ texture, có thể scale lên khi window to
 
-    Vector2 foodPosition = { -1, -1 };
+    std::vector<Vector2> foodPositions;
     int score = 0;
     // MỚI: đếm ngược chuẩn bị trước khi chơi
     float countdownTimer = 3.0f;

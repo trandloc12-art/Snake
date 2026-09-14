@@ -30,6 +30,9 @@ void PlayingState::Init() {
     pendingDirection = snake.GetCurrentDirection();
     moveTimer = 0.0f;
     score = 0;
+
+     foodPositions.clear();
+
     SpawnFood();
 
     // MỚI: mỗi lần vào lại Playing (chơi mới hoặc chơi lại) đều đếm ngược từ đầu
@@ -41,18 +44,42 @@ bool PlayingState::IsWallAt(int x, int y) const {
     return level.GetCell(x, y) == CellType::WALL;
 }
 
+int PlayingState::GetTargetFoodCount() const {
+    return (score < 10) ? 3 : 2;
+}
+
 void PlayingState::SpawnFood() {
+    int target = GetTargetFoodCount();
+
+    // Nếu điểm đã >=10 và số mồi hiện tại còn nhiều hơn target (do vừa mới đạt mốc
+    // 10 điểm ngay sau khi ăn), KHÔNG xoá bớt - để tự giảm dần khi rắn ăn tiếp,
+    // tránh mồi biến mất đột ngột trước mắt người chơi.
+    if ((int)foodPositions.size() >= target) return;
+
+    // Danh sách toàn bộ ô hợp lệ (trống, không phải tường, rắn không nằm lên, và
+    // CHƯA có mồi khác ở đó) - tính lại mỗi lần gọi vì rắn di chuyển liên tục.
     std::vector<Vector2> emptyCells;
     for (int y = 0; y < level.GetHeight(); y++) {
         for (int x = 0; x < level.GetWidth(); x++) {
-            if (level.GetCell(x, y) == CellType::EMPTY && !snake.OccupiesCell(x, y)) {
-                emptyCells.push_back({ (float)x, (float)y });
+            if (level.GetCell(x, y) != CellType::EMPTY) continue;
+            if (snake.OccupiesCell(x, y)) continue;
+
+            bool occupiedByFood = false;
+            for (const auto& f : foodPositions) {
+                if ((int)f.x == x && (int)f.y == y) { occupiedByFood = true; break; }
             }
+            if (occupiedByFood) continue;
+
+            emptyCells.push_back({ (float)x, (float)y });
         }
     }
-    if (emptyCells.empty()) return;
-    int index = GetRandomValue(0, (int)emptyCells.size() - 1);
-    foodPosition = emptyCells[index];
+
+    // Bổ sung từng mồi một cho tới khi đủ số lượng mục tiêu hoặc hết ô trống.
+    while ((int)foodPositions.size() < target && !emptyCells.empty()) {
+        int index = GetRandomValue(0, (int)emptyCells.size() - 1);
+        foodPositions.push_back(emptyCells[index]);
+        emptyCells.erase(emptyCells.begin() + index); // tránh chọn trùng ô vừa dùng
+    }
 }
 
 void PlayingState::Update() {
@@ -86,7 +113,14 @@ void PlayingState::Update() {
     int nextX = (int)head.x + (dir == Direction::RIGHT ? 1 : dir == Direction::LEFT ? -1 : 0);
     int nextY = (int)head.y + (dir == Direction::DOWN  ? 1 : dir == Direction::UP   ? -1 : 0);
 
-    bool ateFood = ((float)nextX == foodPosition.x && (float)nextY == foodPosition.y);
+    int eatenIndex = -1;
+    for (size_t i = 0; i < foodPositions.size(); i++) {
+        if ((int)foodPositions[i].x == nextX && (int)foodPositions[i].y == nextY) {
+            eatenIndex = (int)i;
+            break;
+        }
+    }
+    bool ateFood = (eatenIndex != -1);
 
     snake.Move(ateFood);
 
@@ -109,6 +143,7 @@ void PlayingState::Update() {
 
     if (ateFood) {
         score++;
+        foodPositions.erase(foodPositions.begin() + eatenIndex);
         SpawnFood();
     }
 }
@@ -145,7 +180,9 @@ void PlayingState::Draw() {
 
     // Vẽ mồi
     const Texture2D& foodTex = assets.GetTexture("food");
-    DrawTileTexture(foodTex, (int)foodPosition.x, (int)foodPosition.y, cellSize);
+    for (const auto& f : foodPositions) {
+        DrawTileTexture(foodTex, (int)f.x, (int)f.y, cellSize);
+    }
     // Vẽ rắn
     if (moveInterval <= 0.0f) moveInterval = 0.01f; // tránh chia cho 0
     float moveAlpha = moveTimer / moveInterval;
