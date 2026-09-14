@@ -15,18 +15,11 @@ constexpr int TILE_SOURCE_SIZE = 64;
 constexpr int DEFAULT_CELL_SIZE = 64; // kích thước ô lưới (pixel) để vẽ texture, có thể scale lên khi window to
 
 // ---------- Animation rắn (flipbook) ----------
-// Vị trí các đốt luôn SNAP đúng ô lưới (không nội suy nữa) - cảm giác "di chuyển mượt"
-// đến hoàn toàn từ việc đổi khung hình theo thời gian thực (giống băng chuyền).
-constexpr float SNAKE_ANIM_FPS_HEAD = 4.0f;  // đầu: 4 khung hình/giây
-constexpr float SNAKE_ANIM_FPS_BODY = 6.0f;  // thân/đuôi/góc cua: giữ nguyên tốc độ cũ (chỉnh nếu cần)
+constexpr float SNAKE_ANIM_FPS_BODY = 6.0f;  // thân/đuôi/góc cua: giữ nguyên tốc độ cũ
 
-constexpr int   SNAKE_ANIM_FRAMES_BODY = 6;            // số khung - dùng chung cho đầu / thân thẳng / đuôi / góc cua
-                                                        // (mỗi loại nằm trong 1 thư mục con riêng: assets/textures/<ten>/<ten>_0.png..<ten>_7.png,
-                                                        // ví dụ assets/textures/snake_body/snake_body_0.png..snake_body_7.png).
-constexpr int SNAKE_ANIM_FRAMES_HEAD = 4;  // đầu rắn: 4 khung hình
-constexpr float SNAKE_ANIM_PHASE_PER_SEGMENT = 0.5f;   // độ lệch pha (đơn vị: khung hình) giữa 2 đốt liền kề theo chỉ số i,
-                                                        // tạo hiệu ứng hoạ văn "chảy" dọc thân từ đầu xuống đuôi. Có thể chỉnh để
-                                                        // đổi tốc độ "chảy" của hiệu ứng mà không đụng tới SNAKE_ANIM_FPS.
+constexpr int   SNAKE_ANIM_FRAMES_BODY = 6;
+constexpr int   SNAKE_ANIM_FRAMES_HEAD = 4;  // đầu rắn: 4 khung hình, chạy hết trong đúng 1 bước di chuyển
+constexpr float SNAKE_ANIM_PHASE_PER_SEGMENT = 0.5f;
 
 // ---------- Gameplay: Rắn ----------
 constexpr int DEFAULT_SNAKE_LENGTH = 3;
