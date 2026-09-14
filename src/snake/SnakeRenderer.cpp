@@ -78,6 +78,24 @@ namespace {
         if (frame < 0) frame += frameCount; // % trong C++ có thể trả âm, chuẩn hoá lại về [0, frameCount)
         return frame;
     }
+
+    // Đầu rắn: animation chạy đủ SNAKE_ANIM_FRAMES_HEAD khung trong đúng khoảng thời gian
+    // của MỘT bước di chuyển (moveInterval), và LUÔN reset về frame 0 khi rắn sang ô mới
+    // — vì spawnTimes[0] được Snake::Move() cập nhật lại thành "now" mỗi lần push_front
+    // đầu mới (xem Snake::Move). Khác với bản cũ (dùng đồng hồ tuyệt đối, chạy liên tục
+    // không phụ thuộc bước đi), giờ ta CHỦ ĐỘNG dùng lại chính spawnTime này để animation
+    // luôn khớp pha với lúc rắn đổi ô.
+    int ComputeHeadAnimFrame(double time, double spawnTime, double moveInterval, int frameCount) {
+        if (moveInterval <= 0.0) return 0;
+        float progress = static_cast<float>((time - spawnTime) / moveInterval);
+        int frame = static_cast<int>(std::floor(progress * frameCount));
+        // Clamp thay vì %, vì nếu rắn đứng yên lâu hơn moveInterval (ví dụ game pause,
+        // hoặc frame do lag bị trễ), ta muốn đầu GIỮ NGUYÊN ở khung cuối cùng chứ không
+        // lặp lại animation từ đầu một cách vô nghĩa.
+        if (frame < 0) frame = 0;
+        if (frame >= frameCount) frame = frameCount - 1;
+        return frame;
+    }
 }
 
 SnakeRenderer::SnakeRenderer(const AssetManager& assets) : assets(assets) {}
@@ -120,16 +138,12 @@ void SnakeRenderer::Draw(const Snake& snake, int cellSize, float moveAlpha) cons
         const Texture2D* tex = nullptr;
         float rotation = 0.0f;
 
-        if (i == 0) {
+       if (i == 0) {
             Direction dir = (segments.size() >= 2)
                 ? DirectionFromTo(segments[1], segments[0])
                 : snake.GetCurrentDirection();
             rotation = HeadRotation(dir);
 
-<<<<<<< HEAD
-            int frame = ComputeAnimFrame(time, spawnTimes[i], SNAKE_ANIM_FRAMES_BODY, SNAKE_ANIM_FPS);
-            tex = &assets.GetTexture(skinPrefix + "snake_head_" + std::to_string(frame));
-=======
             // Đầu rắn dùng bộ animation RIÊNG: SNAKE_ANIM_FRAMES_HEAD (số khung) chạy ở
             // tốc độ SNAKE_ANIM_FPS_HEAD (khung/giây) — cả số khung lẫn tốc độ đều tách
             // biệt hoàn toàn khỏi thân/đuôi/góc cua.
