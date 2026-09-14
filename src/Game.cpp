@@ -16,6 +16,8 @@ Game::Game()
     SetExitKey(KEY_NULL); // tắt ESC mặc định của raylib -> tự xử lý logic ESC theo ý mình
     SetTargetFPS(TARGET_FPS);
     assets.LoadAll();
+
+     menuState.Init();
 }
 
 Game::~Game() {
@@ -41,9 +43,10 @@ void Game::Run() {
 }
 
 void Game::Update() {
+    GameState stateThisFrame = currentState;
     bool justEntered = (currentState != previousState);
 
-    switch (currentState) {
+    switch (stateThisFrame) {
         case GameState::MENU:
             if (justEntered) menuState.Init();
             menuState.Update();
@@ -67,7 +70,22 @@ void Game::Update() {
             break;
     }
     if (justEntered) {
-        previousState = currentState;
+        previousState = stateThisFrame;
+    }
+
+    if (currentState != stateThisFrame) {
+        InitCurrentState();
+        previousState = currentState; // đã init rồi -> đánh dấu để frame sau không init lại lần nữa
+    }
+}
+
+void Game::InitCurrentState() {
+    switch (currentState) {
+        case GameState::MENU:         menuState.Init();         break;
+        case GameState::LEVEL_SELECT: levelSelectState.Init();  break;
+        case GameState::LEVEL_EDITOR: levelEditorState.Init();  break;
+        case GameState::PLAYING:      playingState.Init();      break;
+        case GameState::GAME_OVER:    gameOverState.Init();     break;
     }
 }
 

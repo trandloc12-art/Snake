@@ -29,7 +29,7 @@ public:
 private:
     /// Load 1 texture, kiểm tra load thành công và đúng kích thước chuẩn (TILE_SOURCE_SIZE),
     /// đồng thời bật lọc ảnh dạng "point" để giữ pixel sắc nét khi scale.
-    void LoadTextureChecked(const std::string& name, const std::string& path);
+    void LoadTextureChecked(const std::string& name, const std::string& path, bool checkSize = true);
 
     /// Load 1 bộ khung hình animation (flipbook), nằm trong thư mục con "<name>_animation/"
     /// (thư mục có hậu tố "_animation", TÊN FILE bên trong thì KHÔNG có hậu tố này):

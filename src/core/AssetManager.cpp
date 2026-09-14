@@ -37,24 +37,18 @@ void AssetManager::LoadAnimationFrames(const std::string& name, const std::strin
     }
 }
 
-void AssetManager::LoadTextureChecked(const std::string& name, const std::string& path) {
+void AssetManager::LoadTextureChecked(const std::string& name, const std::string& path, bool checkSize) {
     Texture2D tex = LoadTexture(path.c_str());
 
     if (tex.id == 0) {
-        // File không tồn tại / sai đường dẫn -> báo lỗi ngay, tránh lỗi âm thầm
-        // trôi tới tận lúc vẽ mới phát hiện.
         std::cerr << "AssetManager: LOI khong load duoc file '" << path << "'\n";
         textures[name] = tex;
         return;
     }
 
-    // Giữ pixel sắc nét khi scale (DrawTexturePro co giãn theo cellSize) -
-    // bắt buộc cho phong cách pixel art, tránh bị mờ viền.
     SetTextureFilter(tex, TEXTURE_FILTER_POINT);
 
-    // Cảnh báo nếu ai đó lỡ vẽ sai kích thước chuẩn - không chặn chương trình,
-    // chỉ nhắc để bạn kiểm tra lại file ảnh.
-    if (tex.width != TILE_SOURCE_SIZE || tex.height != TILE_SOURCE_SIZE) {
+    if (checkSize && (tex.width != TILE_SOURCE_SIZE || tex.height != TILE_SOURCE_SIZE)) {
         std::cerr << "AssetManager: CANH BAO '" << path << "' kich thuoc "
                    << tex.width << "x" << tex.height
                    << ", khac chuan " << TILE_SOURCE_SIZE << "x" << TILE_SOURCE_SIZE << "\n";
