@@ -18,7 +18,15 @@ void AssetManager::LoadAll() {
     // Các file không thuộc rắn: vẫn nằm trực tiếp trong TEXTURES_DIRECTORY như cũ.
     LoadTextureChecked("wall",               texturesDir + "wall.png");
     LoadTextureChecked("food",               texturesDir + "food.png");
-    LoadTextureChecked("playing_background", texturesDir + "playing_background.png");
+
+    std::string backgroundDir = texturesDir + "background/";
+    LoadTextureChecked("playing_background", backgroundDir + "playing_background.png");
+
+    // menu_background giờ là animation 8 khung, nằm trong
+    // textures/background/menu_background_animation/menu_background_0.png .. _7.png
+    // Key lưu trong bộ nhớ: "menu_background_0" .. "menu_background_7".
+    LoadAnimationFramesRaw("menu_background", backgroundDir, "menu_background",
+                            MENU_BACKGROUND_ANIM_FRAMES);
 
     std::string uiDir = texturesDir + "ui/";
     LoadTextureChecked("btn_choi_game_idle",     uiDir + "btn_choi_game_idle.png",     false);
@@ -59,10 +67,20 @@ void AssetManager::LoadAnimationFrames(const std::string& name, const std::strin
     std::string rawName = (underscorePos != std::string::npos) ? name.substr(underscorePos + 1) : name;
     // rawName giờ là "snake_head" (bỏ "neon_" ở đầu)
 
+    LoadAnimationFramesRaw(name, dir, rawName, frameCount);
+}
+
+void AssetManager::LoadAnimationFramesRaw(const std::string& key, const std::string& dir,
+                                           const std::string& rawName, int frameCount) {
+    // Phần loop-load DÙNG CHUNG cho mọi loại animation (skin rắn lẫn background menu).
+    // Khác với LoadAnimationFrames(), hàm này KHÔNG tự suy ra rawName bằng cách cắt bỏ
+    // tiền tố trước dấu '_' đầu tiên - rawName được truyền thẳng vào, nên dùng an toàn
+    // cho các tên có dấu '_' bên trong nhưng không mang ý nghĩa "tiền tố skin" (vd
+    // "menu_background" không bị hiểu nhầm là skin "menu" + rawName "background").
     for (int frame = 0; frame < frameCount; frame++) {
-        std::string key = name + "_" + std::to_string(frame); // vd "neon_snake_head_0" - KEY lưu trong bộ nhớ
+        std::string frameKey = key + "_" + std::to_string(frame); // vd "menu_background_0"
         std::string path = dir + rawName + "_animation/" + rawName + "_" + std::to_string(frame) + ".png";
-        LoadTextureChecked(key, path);
+        LoadTextureChecked(frameKey, path);
     }
 }
 

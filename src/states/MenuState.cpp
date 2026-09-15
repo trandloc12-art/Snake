@@ -1,7 +1,22 @@
 #include "states/MenuState.h"
 #include "Game.h"
+#include "core/Constants.h"
 #include "enums/GameState.h"
 #include "raylib.h"
+#include <cmath>
+#include <string>
+
+namespace {
+    // Chọn khung hình hiện tại cho background menu - chạy LIÊN TỤC theo thời gian
+    // thực tuyệt đối (giống ComputeHeadAnimFrame của SnakeRenderer), không phụ thuộc
+    // bất kỳ sự kiện game nào (menu không có khái niệm "di chuyển"/"spawn").
+    int ComputeMenuBackgroundFrame(double time, int frameCount, float fps) {
+        int frame = static_cast<int>(std::floor(time * fps));
+        frame %= frameCount;
+        if (frame < 0) frame += frameCount;
+        return frame;
+    }
+}
 
 MenuState::MenuState(Game& game) : game(game) {}
 
@@ -70,6 +85,15 @@ void MenuState::Update() {
 }
 
 void MenuState::Draw() {
+    const AssetManager& assets = game.GetAssets();
+
+    // Background menu giờ là animation 8 khung (xem AssetManager::LoadAll, key
+    // "menu_background_0".."menu_background_7"). Chạy liên tục theo thời gian thực,
+    // không phụ thuộc lựa chọn/tương tác của người chơi trong menu.
+    int bgFrame = ComputeMenuBackgroundFrame(GetTime(), MENU_BACKGROUND_ANIM_FRAMES, MENU_BACKGROUND_ANIM_FPS);
+    const Texture2D& background = assets.GetTexture("menu_background_" + std::to_string(bgFrame));
+    DrawTexture(background, 0, 0, WHITE);
+
     DrawTextureV(*titleTexture, titlePosition, WHITE);
 
     for (int i = 0; i < (int)buttons.size(); i++) {
