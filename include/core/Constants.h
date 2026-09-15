@@ -28,7 +28,9 @@ constexpr int SNAKE_ANIM_FRAMES_HEAD = 4;  // đầu rắn: 4 khung hình, chạ
 constexpr float SNAKE_ANIM_PHASE_PER_SEGMENT = 0.5f;   // độ lệch pha (đơn vị: khung hình) giữa 2 đốt liền kề theo chỉ số i,
                                                         // tạo hiệu ứng hoạ văn "chảy" dọc thân từ đầu xuống đuôi. Có thể chỉnh để
                                                         // đổi tốc độ "chảy" của hiệu ứng mà không đụng tới SNAKE_ANIM_FPS_BODY.
-
+//-------------background---------------------
+constexpr int   MENU_BACKGROUND_ANIM_FRAMES = 8;
+constexpr float MENU_BACKGROUND_ANIM_FPS    = 2.0f;
 // ---------- Gameplay: Rắn ----------
 constexpr int DEFAULT_SNAKE_LENGTH = 3;
 constexpr float DEFAULT_MOVE_INTERVAL = 0.2f; // thời gian giữa các bước di chuyển

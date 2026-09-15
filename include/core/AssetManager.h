@@ -36,7 +36,11 @@ private:
     /// "<dir>/<name>_animation/<name>_0.png" đến "<dir>/<name>_animation/<name>_(frameCount-1).png".
     /// Lưu vào map với key "<name>_<i>" (không có path/đuôi .png).
     /// Dùng cho đầu/thân/đuôi/góc cua của rắn - mỗi loại hiện có SNAKE_ANIM_FRAMES_BODY khung.
+    // AssetManager.h — phần private, cần có ĐỦ CẢ 2 dòng này:
     void LoadAnimationFrames(const std::string& name, const std::string& dir, int frameCount);
+
+    void LoadAnimationFramesRaw(const std::string& key, const std::string& dir,
+                             const std::string& rawName, int frameCount);
 
     /// MỚI: load 4 bộ animation (head/body/tail/corner) của 1 skin, texture key sẽ có
     /// tiền tố tên skin (vd "neon_snake_head_0") để phân biệt với skin khác.
